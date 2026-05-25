@@ -1,0 +1,40 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecureChat.Core", "src\SecureChat.Core\SecureChat.Core.csproj", "{6BA2BF31-73BB-4252-80A7-FC21460BA17A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecureChat.Shared", "src\SecureChat.Shared\SecureChat.Shared.csproj", "{98D6B13B-A0D4-4E2E-80C1-2456293B6E65}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecureChat.Client", "src\SecureChat.Client\SecureChat.Client.csproj", "{3592B75A-C759-47F7-84FE-E71D2F3BFF86}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecureChat.Server", "src\SecureChat.Server\SecureChat.Server.csproj", "{A31428EA-2F9B-4768-8E05-B6DA5781F750}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6BA2BF31-73BB-4252-80A7-FC21460BA17A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6BA2BF31-73BB-4252-80A7-FC21460BA17A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6BA2BF31-73BB-4252-80A7-FC21460BA17A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6BA2BF31-73BB-4252-80A7-FC21460BA17A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98D6B13B-A0D4-4E2E-80C1-2456293B6E65}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98D6B13B-A0D4-4E2E-80C1-2456293B6E65}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98D6B13B-A0D4-4E2E-80C1-2456293B6E65}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98D6B13B-A0D4-4E2E-80C1-2456293B6E65}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3592B75A-C759-47F7-84FE-E71D2F3BFF86}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3592B75A-C759-47F7-84FE-E71D2F3BFF86}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3592B75A-C759-47F7-84FE-E71D2F3BFF86}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3592B75A-C759-47F7-84FE-E71D2F3BFF86}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A31428EA-2F9B-4768-8E05-B6DA5781F750}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A31428EA-2F9B-4768-8E05-B6DA5781F750}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A31428EA-2F9B-4768-8E05-B6DA5781F750}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A31428EA-2F9B-4768-8E05-B6DA5781F750}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
