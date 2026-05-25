@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using SecureChat.Shared.Constants;
 using SecureChat.Shared.Contracts.Auth;
 using SecureChat.Shared.Contracts.Messages;
+using SecureChat.Shared.Contracts.Online;
 using SecureChat.Shared.Contracts.Users;
 
 namespace SecureChat.Client.Services;
@@ -81,5 +82,21 @@ public sealed class ApiClient
         response.EnsureSuccessStatusCode();
         var payload = await response.Content.ReadFromJsonAsync<PublicKeyResponse>(cancellationToken: cancellationToken);
         return payload?.PublicKeyPem;
+    }
+
+    public async Task SendHeartbeatAsync(string userId, string deviceId, CancellationToken cancellationToken = default)
+    {
+        var response = await _httpClient.PostAsJsonAsync(ApiRoutes.OnlineHeartbeat, new OnlineHeartbeatRequest
+        {
+            UserId = userId,
+            DeviceId = deviceId
+        }, cancellationToken);
+
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task<OnlineStatsResponse?> GetOnlineStatsAsync(CancellationToken cancellationToken = default)
+    {
+        return await _httpClient.GetFromJsonAsync<OnlineStatsResponse>(ApiRoutes.OnlineStats, cancellationToken);
     }
 }

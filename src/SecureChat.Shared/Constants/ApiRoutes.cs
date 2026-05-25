@@ -8,4 +8,6 @@ public static class ApiRoutes
     public const string GetInbox = "/api/messages/inbox/{userId}";
     public const string MicrosoftLoginStart = "/api/auth/oauth/microsoft/start";
     public const string Me = "/api/auth/me";
+    public const string OnlineHeartbeat = "/api/online/heartbeat";
+    public const string OnlineStats = "/api/online/stats";
 }

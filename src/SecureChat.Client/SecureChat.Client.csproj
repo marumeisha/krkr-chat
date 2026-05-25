@@ -10,4 +10,9 @@
     <ProjectReference Include="..\SecureChat.Core\SecureChat.Core.csproj" />
     <ProjectReference Include="..\SecureChat.Shared\SecureChat.Shared.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="appsettings.client.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 </Project>

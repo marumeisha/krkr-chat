@@ -12,8 +12,18 @@ obj/
 
 # Build output
 artifacts/
+.artifacts/
 out/
 TestResults/
+publish/
+
+# Packaging output
+*.msi
+*.exe
+*.zip
+
+# Logs
+*.log
 
 # OS
 .DS_Store

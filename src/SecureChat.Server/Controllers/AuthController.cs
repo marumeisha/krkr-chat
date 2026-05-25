@@ -1,6 +1,8 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Net;
 using System.Security.Claims;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -62,9 +64,23 @@ public sealed class AuthController : ControllerBase
 
         var options = _microsoftOptions.Value;
         var callback = BuildAbsoluteCallbackUri(options.CallbackPath);
-        var client = _httpClientFactory.CreateClient();
+        var client = _httpClientFactory.CreateClient("MicrosoftOAuth");
 
-        var tokenResponse = await ExchangeCodeForTokenAsync(client, options, code, callback, cancellationToken);
+        MicrosoftTokenResponse tokenResponse;
+        try
+        {
+            tokenResponse = await ExchangeCodeForTokenAsync(client, options, code, callback, cancellationToken);
+        }
+        catch (OAuthTokenExchangeException ex)
+        {
+            return BadRequest($"Microsoft OAuth token exchange failed ({ex.StatusCode}): {ex.Message}");
+        }
+        catch (HttpRequestException)
+        {
+            return StatusCode(StatusCodes.Status502BadGateway,
+                "Unable to reach Microsoft OAuth token endpoint. Please try again in a few seconds.");
+        }
+
         if (string.IsNullOrWhiteSpace(tokenResponse.AccessToken))
         {
             return Problem("Failed to retrieve Microsoft access token.");
@@ -127,22 +143,46 @@ public sealed class AuthController : ControllerBase
         string redirectUri,
         CancellationToken cancellationToken)
     {
-        var response = await client.PostAsync(
-            $"https://login.microsoftonline.com/{options.Tenant}/oauth2/v2.0/token",
-            new FormUrlEncodedContent(new Dictionary<string, string>
-            {
-                ["client_id"] = options.ClientId,
-                ["client_secret"] = options.ClientSecret,
-                ["grant_type"] = "authorization_code",
-                ["code"] = code,
-                ["redirect_uri"] = redirectUri,
-                ["scope"] = "openid profile email offline_access User.Read"
-            }),
-            cancellationToken);
+        var endpoint = $"https://login.microsoftonline.com/{options.Tenant}/oauth2/v2.0/token";
+        var payload = new Dictionary<string, string>
+        {
+            ["client_id"] = options.ClientId,
+            ["client_secret"] = options.ClientSecret,
+            ["grant_type"] = "authorization_code",
+            ["code"] = code,
+            ["redirect_uri"] = redirectUri,
+            ["scope"] = "openid profile email offline_access User.Read"
+        };
 
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<MicrosoftTokenResponse>(cancellationToken: cancellationToken)
-               ?? new MicrosoftTokenResponse();
+        // Prefer HTTP/1.1 and retry once to survive transient TLS/proxy handshake failures.
+        for (var attempt = 0; attempt < 2; attempt++)
+        {
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
+                {
+                    Content = new FormUrlEncodedContent(payload),
+                    Version = HttpVersion.Version11,
+                    VersionPolicy = HttpVersionPolicy.RequestVersionOrLower
+                };
+
+                using var response = await client.SendAsync(request, cancellationToken);
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
+                    throw new OAuthTokenExchangeException((int)response.StatusCode, errorBody);
+                }
+
+                return await response.Content.ReadFromJsonAsync<MicrosoftTokenResponse>(cancellationToken: cancellationToken)
+                       ?? new MicrosoftTokenResponse();
+            }
+            catch (HttpRequestException) when (attempt == 0)
+            {
+                await Task.Delay(500, cancellationToken);
+            }
+        }
+
+        throw new HttpRequestException("Failed to exchange OAuth code for token after retry.");
     }
 
     private static async Task<MicrosoftProfileResponse> GetMicrosoftProfileAsync(HttpClient client, string accessToken, CancellationToken cancellationToken)
@@ -158,6 +198,7 @@ public sealed class AuthController : ControllerBase
 
     private sealed record MicrosoftTokenResponse
     {
+        [JsonPropertyName("access_token")]
         public string AccessToken { get; init; } = "";
     }
 
@@ -167,5 +208,15 @@ public sealed class AuthController : ControllerBase
         public string? DisplayName { get; init; }
         public string? Mail { get; init; }
         public string? UserPrincipalName { get; init; }
+    }
+
+    private sealed class OAuthTokenExchangeException : Exception
+    {
+        public int StatusCode { get; }
+
+        public OAuthTokenExchangeException(int statusCode, string message) : base(message)
+        {
+            StatusCode = statusCode;
+        }
     }
 }

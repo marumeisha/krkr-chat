@@ -1,6 +1,10 @@
 using System.Drawing;
+using System.Diagnostics;
+using System.Net;
+using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
+using SecureChat.Client.Modules.OnlineUsers;
 using SecureChat.Client.Services;
 using SecureChat.Core.Crypto;
 using SecureChat.Core.Keys;
@@ -38,15 +42,26 @@ public sealed class MainForm : Form
         Padding = new Padding(8, 4, 8, 4),
         Margin = new Padding(4)
     };
-    private readonly ListBox _messagesListBox = new() { Width = 860, Height = 260 };
+    private readonly Button _signInButton = new()
+    {
+        Text = "Sign in with Microsoft",
+        AutoSize = true,
+        AutoSizeMode = AutoSizeMode.GrowAndShrink,
+        Padding = new Padding(8, 4, 8, 4),
+        Margin = new Padding(4)
+    };
+    private readonly ListBox _messagesListBox = new() { Width = 540, Height = 260 };
     private readonly Label _statusLabel = new() { AutoSize = true, Text = "Ready" };
+    private readonly OnlineUsersPanel _onlineUsersPanel = new() { Width = 300, Height = 400 };
 
     private readonly ApiClient _apiClient;
     private readonly IdentityKeyService _identityKeyService;
     private readonly IdentityBootstrapService _identityBootstrapService;
     private readonly MessageCryptoService _messageCryptoService = new();
+    private readonly OnlineUsersService _onlineUsersService = new();
+    private readonly System.Windows.Forms.Timer _presenceTimer = new() { Interval = 30_000 };
 
-    public MainForm()
+    public MainForm(Uri apiBaseUri)
     {
         Text = "SecureChat Client";
         Width = 920;
@@ -59,7 +74,7 @@ public sealed class MainForm : Form
         _identityBootstrapService = new IdentityBootstrapService(_identityKeyService);
         _apiClient = new ApiClient(new HttpClient
         {
-            BaseAddress = new Uri("http://localhost:5199")
+            BaseAddress = apiBaseUri
         });
 
         var topPanel = new FlowLayoutPanel
@@ -74,6 +89,7 @@ public sealed class MainForm : Form
 
         topPanel.Controls.Add(_currentUserTextBox);
         topPanel.Controls.Add(_recipientUserTextBox);
+        topPanel.Controls.Add(_signInButton);
         topPanel.Controls.Add(_registerKeyButton);
         topPanel.Controls.Add(_sendButton);
         topPanel.Controls.Add(_refreshButton);
@@ -84,23 +100,114 @@ public sealed class MainForm : Form
             Padding = new Padding(10)
         };
 
+        _messageTextBox.Width = 540;
         _messageTextBox.Top = 10;
         _messageTextBox.Left = 10;
         _messagesListBox.Top = 150;
         _messagesListBox.Left = 10;
+        _onlineUsersPanel.Top = 10;
+        _onlineUsersPanel.Left = 570;
         _statusLabel.Top = 420;
         _statusLabel.Left = 10;
 
         contentPanel.Controls.Add(_messageTextBox);
         contentPanel.Controls.Add(_messagesListBox);
+        contentPanel.Controls.Add(_onlineUsersPanel);
         contentPanel.Controls.Add(_statusLabel);
 
         Controls.Add(contentPanel);
         Controls.Add(topPanel);
 
+        _signInButton.Click += async (_, _) => await SignInWithMicrosoftAsync();
         _registerKeyButton.Click += async (_, _) => await RegisterMyPublicKeyAsync();
         _sendButton.Click += async (_, _) => await SendCurrentMessageAsync();
         _refreshButton.Click += async (_, _) => await RefreshInboxAsync();
+        _currentUserTextBox.TextChanged += (_, _) => RefreshOnlineUsersPanel();
+        _onlineUsersPanel.UserPicked += userId => _recipientUserTextBox.Text = userId;
+        _presenceTimer.Tick += (_, _) => _ = SendPresenceHeartbeatAsync();
+        _presenceTimer.Start();
+
+        RefreshOnlineUsersPanel();
+    }
+
+    private async Task SignInWithMicrosoftAsync()
+    {
+        try
+        {
+            _signInButton.Enabled = false;
+
+            var callbackPort = GetAvailableLoopbackPort();
+            var callbackUri = $"http://127.0.0.1:{callbackPort}/oauth/callback/";
+            using var callbackListener = new HttpListener();
+            callbackListener.Prefixes.Add(callbackUri);
+            callbackListener.Start();
+
+            var signInUrl = _apiClient.BuildMicrosoftLoginUrl(callbackUri);
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = signInUrl,
+                UseShellExecute = true
+            });
+
+            SetStatus("Browser opened for Microsoft sign in.");
+
+            var callbackTask = callbackListener.GetContextAsync();
+            var completedTask = await Task.WhenAny(callbackTask, Task.Delay(TimeSpan.FromSeconds(30)));
+            if (completedTask != callbackTask)
+            {
+                SetStatus("Sign in timed out after 30 seconds. Please try again.");
+                return;
+            }
+
+            var callbackContext = await callbackTask;
+            var query = ParseQueryString(callbackContext.Request.Url?.Query);
+
+            if (!query.TryGetValue("token", out var accessToken) || string.IsNullOrWhiteSpace(accessToken))
+            {
+                await WriteCallbackPageAsync(callbackContext.Response, "Sign in failed: token missing.");
+                SetStatus("Sign in failed: token missing.");
+                return;
+            }
+
+            _apiClient.SetBearerToken(accessToken);
+
+            if (query.TryGetValue("userId", out var userId) && !string.IsNullOrWhiteSpace(userId))
+            {
+                _currentUserTextBox.Text = userId;
+                _onlineUsersService.RecordSeen(userId);
+            }
+
+            await WriteCallbackPageAsync(callbackContext.Response, "Sign in succeeded. You can close this page and return to SecureChat Client.");
+
+            var currentUser = await _apiClient.GetCurrentUserAsync();
+            if (currentUser is not null)
+            {
+                if (!string.IsNullOrWhiteSpace(currentUser.UserId))
+                {
+                    _currentUserTextBox.Text = currentUser.UserId;
+                    _onlineUsersService.RecordSeen(currentUser.UserId);
+                }
+
+                RefreshOnlineUsersPanel();
+                SetStatus($"Signed in as {currentUser.DisplayName} ({currentUser.UserId}).");
+                _ = SendPresenceHeartbeatAsync();
+                return;
+            }
+
+            SetStatus("Signed in, but user profile could not be loaded.");
+        }
+        catch (HttpListenerException ex)
+        {
+            SetStatus($"Unable to start callback listener: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            SetStatus($"Sign in failed: {ex.Message}");
+        }
+        finally
+        {
+            _signInButton.Enabled = true;
+        }
     }
 
     private async Task RegisterMyPublicKeyAsync()
@@ -117,6 +224,8 @@ public sealed class MainForm : Form
             _identityBootstrapService.EnsureInitialized(userId);
             var publicKeyPem = _identityKeyService.LoadPublicKeyPem(userId);
             await _apiClient.RegisterPublicKeyAsync(userId, publicKeyPem);
+            _onlineUsersService.RecordSeen(userId);
+            RefreshOnlineUsersPanel();
             SetStatus("Public key registered.");
         }
         catch (Exception ex)
@@ -179,6 +288,9 @@ public sealed class MainForm : Form
                 EnvelopeJson = envelopeJson
             });
 
+            _onlineUsersService.RecordSeen(senderUserId);
+            _onlineUsersService.RecordSeen(recipientUserId);
+            RefreshOnlineUsersPanel();
             _messageTextBox.Clear();
             SetStatus("Encrypted message sent.");
         }
@@ -203,6 +315,8 @@ public sealed class MainForm : Form
             using var privateKey = _identityKeyService.LoadPrivateKey(userId);
 
             var inbox = await _apiClient.GetInboxAsync(userId);
+            _onlineUsersService.RecordSeen(userId);
+            _onlineUsersService.RecordInbox(inbox);
             _messagesListBox.Items.Clear();
 
             foreach (var item in inbox)
@@ -216,6 +330,7 @@ public sealed class MainForm : Form
                 _messagesListBox.Items.Add(text);
             }
 
+            RefreshOnlineUsersPanel();
             SetStatus($"Inbox refreshed: {inbox.Count} message(s).");
         }
         catch (Exception ex)
@@ -229,8 +344,117 @@ public sealed class MainForm : Form
         _statusLabel.Text = text;
     }
 
+    private void RefreshOnlineUsersPanel()
+    {
+        var currentUserId = _currentUserTextBox.Text.Trim();
+        var entries = _onlineUsersService.GetEntries();
+        _onlineUsersPanel.SetEntries(entries, currentUserId);
+        _ = RefreshOnlineUsersFromServerAsync(currentUserId);
+    }
+
+    private static async Task WriteCallbackPageAsync(HttpListenerResponse response, string message)
+    {
+        var html =
+            "<!doctype html><html><head><meta charset=\"utf-8\"><title>SecureChat Sign-In</title></head><body>" +
+            $"<h2>{WebUtility.HtmlEncode(message)}</h2>" +
+            "<p>You can close this page now.</p></body></html>";
+
+        var buffer = Encoding.UTF8.GetBytes(html);
+        response.StatusCode = 200;
+        response.ContentType = "text/html; charset=utf-8";
+        response.ContentLength64 = buffer.LongLength;
+        await response.OutputStream.WriteAsync(buffer);
+        response.Close();
+    }
+
+    private static Dictionary<string, string> ParseQueryString(string? query)
+    {
+        var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return values;
+        }
+
+        var content = query[0] == '?' ? query[1..] : query;
+        foreach (var segment in content.Split('&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var index = segment.IndexOf('=');
+            if (index < 0)
+            {
+                values[Uri.UnescapeDataString(segment)] = string.Empty;
+                continue;
+            }
+
+            var key = Uri.UnescapeDataString(segment[..index]);
+            var value = Uri.UnescapeDataString(segment[(index + 1)..]);
+            values[key] = value;
+        }
+
+        return values;
+    }
+
+    private static int GetAvailableLoopbackPort()
+    {
+        var probe = new TcpListener(IPAddress.Loopback, 0);
+        probe.Start();
+        var port = ((IPEndPoint)probe.LocalEndpoint).Port;
+        probe.Stop();
+        return port;
+    }
+
     private static string BuildConversationId(string a, string b)
     {
         return string.CompareOrdinal(a, b) <= 0 ? $"{a}:{b}" : $"{b}:{a}";
+    }
+
+    private async Task SendPresenceHeartbeatAsync()
+    {
+        var userId = _currentUserTextBox.Text.Trim();
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return;
+        }
+
+        try
+        {
+            await _apiClient.SendHeartbeatAsync(userId, Environment.MachineName);
+            await RefreshOnlineUsersFromServerAsync(userId);
+        }
+        catch
+        {
+            // Heartbeat is best-effort and should not interrupt chat flow.
+        }
+    }
+
+    private async Task RefreshOnlineUsersFromServerAsync(string currentUserId)
+    {
+        try
+        {
+            var stats = await _apiClient.GetOnlineStatsAsync();
+            if (stats is null)
+            {
+                return;
+            }
+
+            var entries = stats.Users
+                .Select(user => new OnlineUserEntry
+                {
+                    UserId = user.UserId,
+                    LastSeenAt = user.LastSeenUtc,
+                    IsOnline = true
+                })
+                .ToList();
+
+            if (IsDisposed || !IsHandleCreated)
+            {
+                return;
+            }
+
+            BeginInvoke(() => _onlineUsersPanel.SetEntries(entries, currentUserId));
+        }
+        catch
+        {
+            // Keep local fallback list when server stats are temporarily unavailable.
+        }
     }
 }
