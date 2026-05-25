@@ -1,3 +1,4 @@
+using System.Drawing;
 using System.Security.Cryptography;
 using System.Text;
 using SecureChat.Client.Services;
@@ -10,12 +11,33 @@ namespace SecureChat.Client;
 
 public sealed class MainForm : Form
 {
-    private readonly TextBox _currentUserTextBox = new() { PlaceholderText = "Current User ID", Width = 180 };
-    private readonly TextBox _recipientUserTextBox = new() { PlaceholderText = "Recipient User ID", Width = 180 };
+    private readonly TextBox _currentUserTextBox = new() { PlaceholderText = "Current User ID", Width = 180, Margin = new Padding(4) };
+    private readonly TextBox _recipientUserTextBox = new() { PlaceholderText = "Recipient User ID", Width = 180, Margin = new Padding(4) };
     private readonly TextBox _messageTextBox = new() { Multiline = true, Width = 520, Height = 120, ScrollBars = ScrollBars.Vertical };
-    private readonly Button _registerKeyButton = new() { Text = "Register My Public Key", Width = 160 };
-    private readonly Button _sendButton = new() { Text = "Encrypt && Send", Width = 120 };
-    private readonly Button _refreshButton = new() { Text = "Refresh Inbox", Width = 120 };
+    private readonly Button _registerKeyButton = new()
+    {
+        Text = "Register My Public Key",
+        AutoSize = true,
+        AutoSizeMode = AutoSizeMode.GrowAndShrink,
+        Padding = new Padding(8, 4, 8, 4),
+        Margin = new Padding(4)
+    };
+    private readonly Button _sendButton = new()
+    {
+        Text = "Encrypt && Send",
+        AutoSize = true,
+        AutoSizeMode = AutoSizeMode.GrowAndShrink,
+        Padding = new Padding(8, 4, 8, 4),
+        Margin = new Padding(4)
+    };
+    private readonly Button _refreshButton = new()
+    {
+        Text = "Refresh Inbox",
+        AutoSize = true,
+        AutoSizeMode = AutoSizeMode.GrowAndShrink,
+        Padding = new Padding(8, 4, 8, 4),
+        Margin = new Padding(4)
+    };
     private readonly ListBox _messagesListBox = new() { Width = 860, Height = 260 };
     private readonly Label _statusLabel = new() { AutoSize = true, Text = "Ready" };
 
@@ -30,6 +52,7 @@ public sealed class MainForm : Form
         Width = 920;
         Height = 640;
         StartPosition = FormStartPosition.CenterScreen;
+        Font = SystemFonts.MessageBoxFont;
 
         var keyStore = new WindowsDpapiKeyStore();
         _identityKeyService = new IdentityKeyService(keyStore);
@@ -43,8 +66,10 @@ public sealed class MainForm : Form
         {
             Dock = DockStyle.Top,
             AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
             Padding = new Padding(10),
-            WrapContents = true
+            WrapContents = true,
+            FlowDirection = FlowDirection.LeftToRight
         };
 
         topPanel.Controls.Add(_currentUserTextBox);
