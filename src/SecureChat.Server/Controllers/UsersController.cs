@@ -17,6 +17,11 @@ public sealed class UsersController : ControllerBase
     [HttpPost("/api/users/register-key")]
     public IActionResult RegisterKey([FromBody] RegisterPublicKeyRequest request)
     {
+        if (string.IsNullOrWhiteSpace(request.UserId) || string.IsNullOrWhiteSpace(request.PublicKeyPem))
+        {
+            return BadRequest("UserId and PublicKeyPem are required.");
+        }
+
         _publicKeyDirectoryService.Set(request.UserId, request.PublicKeyPem);
         return Ok();
     }
@@ -24,6 +29,11 @@ public sealed class UsersController : ControllerBase
     [HttpGet("/api/users/{userId}/public-key")]
     public ActionResult<PublicKeyResponse> GetPublicKey(string userId)
     {
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return BadRequest("userId is required.");
+        }
+
         var publicKeyPem = _publicKeyDirectoryService.Get(userId);
         if (publicKeyPem is null)
         {

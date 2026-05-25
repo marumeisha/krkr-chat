@@ -14,7 +14,7 @@ public sealed class MessageService
             _messages.Add(new MessageDto
             {
                 MessageId = Guid.NewGuid().ToString("N"),
-                SenderUserId = "unknown",
+                SenderUserId = request.SenderUserId,
                 RecipientUserId = request.RecipientUserId,
                 EnvelopeJson = request.EnvelopeJson,
                 CreatedAt = DateTimeOffset.UtcNow
@@ -26,7 +26,10 @@ public sealed class MessageService
     {
         lock (_lock)
         {
-            return _messages.Where(x => string.Equals(x.RecipientUserId, userId, StringComparison.OrdinalIgnoreCase)).ToList();
+            return _messages
+                .Where(x => string.Equals(x.RecipientUserId, userId, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(x => x.CreatedAt)
+                .ToList();
         }
     }
 }

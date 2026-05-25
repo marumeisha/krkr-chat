@@ -17,6 +17,13 @@ public sealed class MessagesController : ControllerBase
     [HttpPost("/api/messages/send")]
     public IActionResult Send([FromBody] SendMessageRequest request)
     {
+        if (string.IsNullOrWhiteSpace(request.SenderUserId) ||
+            string.IsNullOrWhiteSpace(request.RecipientUserId) ||
+            string.IsNullOrWhiteSpace(request.EnvelopeJson))
+        {
+            return BadRequest("SenderUserId, RecipientUserId, and EnvelopeJson are required.");
+        }
+
         _messageService.Add(request);
         return Ok();
     }
@@ -24,6 +31,11 @@ public sealed class MessagesController : ControllerBase
     [HttpGet("/api/messages/inbox/{userId}")]
     public ActionResult<IReadOnlyList<MessageDto>> Inbox(string userId)
     {
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return BadRequest("userId is required.");
+        }
+
         return Ok(_messageService.GetInbox(userId));
     }
 }
