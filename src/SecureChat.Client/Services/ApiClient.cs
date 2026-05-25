@@ -1,5 +1,7 @@
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using SecureChat.Shared.Constants;
+using SecureChat.Shared.Contracts.Auth;
 using SecureChat.Shared.Contracts.Messages;
 using SecureChat.Shared.Contracts.Users;
 
@@ -12,6 +14,36 @@ public sealed class ApiClient
     public ApiClient(HttpClient httpClient)
     {
         _httpClient = httpClient;
+    }
+
+    public void SetBearerToken(string? accessToken)
+    {
+        _httpClient.DefaultRequestHeaders.Authorization = string.IsNullOrWhiteSpace(accessToken)
+            ? null
+            : new AuthenticationHeaderValue("Bearer", accessToken);
+    }
+
+    public string BuildMicrosoftLoginUrl(string? redirectUri = null)
+    {
+        var url = ApiRoutes.MicrosoftLoginStart;
+        if (!string.IsNullOrWhiteSpace(redirectUri))
+        {
+            url += $"?redirectUri={Uri.EscapeDataString(redirectUri)}";
+        }
+
+        return new Uri(_httpClient.BaseAddress!, url).ToString();
+    }
+
+    public async Task<CurrentUserResponse?> GetCurrentUserAsync(CancellationToken cancellationToken = default)
+    {
+        var response = await _httpClient.GetAsync(ApiRoutes.Me, cancellationToken);
+        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+        {
+            return null;
+        }
+
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<CurrentUserResponse>(cancellationToken: cancellationToken);
     }
 
     public async Task SendMessageAsync(SendMessageRequest request, CancellationToken cancellationToken = default)
