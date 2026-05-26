@@ -60,6 +60,7 @@ public sealed class MainForm : Form
     private readonly MessageCryptoService _messageCryptoService = new();
     private readonly OnlineUsersService _onlineUsersService = new();
     private readonly System.Windows.Forms.Timer _presenceTimer = new() { Interval = 30_000 };
+    private bool _splittersInitialized;
 
     public MainForm(Uri apiBaseUri)
     {
@@ -100,23 +101,38 @@ public sealed class MainForm : Form
             Padding = new Padding(10)
         };
 
-        _messageTextBox.Width = 540;
-        _messageTextBox.Top = 10;
-        _messageTextBox.Left = 10;
-        _messagesListBox.Top = 150;
-        _messagesListBox.Left = 10;
-        _onlineUsersPanel.Top = 10;
-        _onlineUsersPanel.Left = 570;
-        _statusLabel.Top = 420;
-        _statusLabel.Left = 10;
+        var mainSplit = new SplitContainer
+        {
+            Dock = DockStyle.Fill,
+            Orientation = Orientation.Vertical
+        };
 
-        contentPanel.Controls.Add(_messageTextBox);
-        contentPanel.Controls.Add(_messagesListBox);
-        contentPanel.Controls.Add(_onlineUsersPanel);
+        var chatSplit = new SplitContainer
+        {
+            Dock = DockStyle.Fill,
+            Orientation = Orientation.Horizontal
+        };
+
+        _messageTextBox.Dock = DockStyle.Fill;
+        _messagesListBox.Dock = DockStyle.Fill;
+        _onlineUsersPanel.Dock = DockStyle.Fill;
+
+        chatSplit.Panel1.Controls.Add(_messageTextBox);
+        chatSplit.Panel2.Controls.Add(_messagesListBox);
+        mainSplit.Panel1.Controls.Add(chatSplit);
+        mainSplit.Panel2.Controls.Add(_onlineUsersPanel);
+
+        _statusLabel.AutoSize = false;
+        _statusLabel.Height = 24;
+        _statusLabel.Dock = DockStyle.Bottom;
+
+        contentPanel.Controls.Add(mainSplit);
         contentPanel.Controls.Add(_statusLabel);
 
         Controls.Add(contentPanel);
         Controls.Add(topPanel);
+
+        Shown += (_, _) => EnsureInitialSplitters(mainSplit, chatSplit);
 
         _signInButton.Click += async (_, _) => await SignInWithMicrosoftAsync();
         _registerKeyButton.Click += async (_, _) => await RegisterMyPublicKeyAsync();
@@ -128,6 +144,47 @@ public sealed class MainForm : Form
         _presenceTimer.Start();
 
         RefreshOnlineUsersPanel();
+    }
+
+    private void EnsureInitialSplitters(SplitContainer mainSplit, SplitContainer chatSplit)
+    {
+        if (_splittersInitialized)
+        {
+            return;
+        }
+
+        mainSplit.Panel1MinSize = 320;
+        mainSplit.Panel2MinSize = 220;
+        chatSplit.Panel1MinSize = 90;
+        chatSplit.Panel2MinSize = 150;
+
+        if (!TrySetSplitterDistance(mainSplit, 560))
+        {
+            return;
+        }
+
+        if (!TrySetSplitterDistance(chatSplit, 130))
+        {
+            return;
+        }
+
+        _splittersInitialized = true;
+    }
+
+    private static bool TrySetSplitterDistance(SplitContainer splitContainer, int desired)
+    {
+        var maxDistance = splitContainer.Orientation == Orientation.Vertical
+            ? splitContainer.Width - splitContainer.Panel2MinSize
+            : splitContainer.Height - splitContainer.Panel2MinSize;
+
+        var minDistance = splitContainer.Panel1MinSize;
+        if (maxDistance < minDistance)
+        {
+            return false;
+        }
+
+        splitContainer.SplitterDistance = Math.Clamp(desired, minDistance, maxDistance);
+        return true;
     }
 
     private async Task SignInWithMicrosoftAsync()

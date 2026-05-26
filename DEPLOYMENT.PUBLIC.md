@@ -26,12 +26,59 @@ Then run server:
 .\publish\server\SecureChat.Server.exe
 ```
 
+For local source-based startup, this repo also includes a helper:
+
+```powershell
+Set-Location D:\github\2\krkr-chat
+.\scripts\start-server.ps1
+```
+
+Double-click alternative:
+
+- `.\scripts\start-server.bat`
+
+For local source-based startup in this repository, you can also use:
+
+```powershell
+Set-Location D:\github\2\krkr-chat
+.\scripts\start-server.ps1
+```
+
 ## 3. Public HTTPS endpoint
 
 Place a reverse proxy (Nginx/Caddy/IIS) in front of port 5000.
 - Terminate TLS at the proxy
 - Forward traffic to `http://127.0.0.1:5000`
 - Keep a stable public domain, for example `https://chat.example.com`
+
+For the local `krkr.chat` setup used during development, start the tunnel with:
+
+```powershell
+Set-Location D:\github\2\krkr-chat
+.\scripts\start-tunnel.ps1
+```
+
+Double-click alternative:
+
+- `.\scripts\start-tunnel.bat`
+
+To start the client against `krkr.chat` from source:
+
+```powershell
+Set-Location D:\github\2\krkr-chat
+.\scripts\start-client.ps1
+```
+
+Double-click alternative:
+
+- `.\scripts\start-client.bat`
+
+If you use Cloudflare Tunnel locally, start it with:
+
+```powershell
+Set-Location D:\github\2\krkr-chat
+.\scripts\start-tunnel.ps1
+```
 
 ## 4. Microsoft Entra app registration
 
