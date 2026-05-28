@@ -1,0 +1,92 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:views="using:SecureChat.Desktop.Views"
+        x:Class="SecureChat.Desktop.MainWindow"
+        mc:Ignorable="d"
+        Width="1240"
+        Height="820"
+        MinWidth="980"
+        MinHeight="640"
+        Title="SecureChat Desktop"
+        FontFamily="{StaticResource AppFont}"
+        Background="{StaticResource WindowBackgroundBrush}">
+  <Grid RowDefinitions="Auto,*,Auto" Margin="24">
+    <views:SessionHeaderView />
+
+    <ScrollViewer Grid.Row="1" Margin="0,18,0,18" HorizontalScrollBarVisibility="Disabled">
+      <Grid RowDefinitions="Auto,*" ColumnDefinitions="1.15*,1.15*,1.05*">
+        <Border Classes="card" Margin="0,0,18,18">
+          <StackPanel Spacing="12">
+            <TextBlock Classes="section-title" Text="工作区入口" />
+            <TextBlock Text="文字消息和视频通话已经拆成两个独立窗口。主页只保留基础状态、快捷入口和后续功能预留位。"
+                       Foreground="{StaticResource TextMutedBrush}"
+                       TextWrapping="Wrap" />
+            <Button Content="打开文字消息窗口" Click="OpenMessagesWindow" />
+            <Button Content="打开视频通话窗口" Click="OpenVideoWindow" />
+            <Button Content="打开主播模块" Click="OpenLiveHostWindow" />
+            <Button Content="打开观众模块" Click="OpenLiveAudienceWindow" />
+            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="14" Padding="14">
+              <StackPanel Spacing="6">
+                <TextBlock Text="当前发送目标" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding RecipientUserId}" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding PendingAttachmentSummary}" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </Border>
+
+        <Border Grid.Column="1" Classes="card" Margin="0,0,18,18">
+          <StackPanel Spacing="12">
+            <TextBlock Classes="section-title" Text="基础状态" />
+            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto">
+              <TextBlock Text="当前用户" Foreground="{StaticResource TextMutedBrush}" />
+              <TextBlock Grid.Column="1" Text="{Binding CurrentDisplayName}" TextWrapping="Wrap" />
+              <TextBlock Grid.Row="1" Margin="0,8,0,0" Text="用户 ID" Foreground="{StaticResource TextMutedBrush}" />
+              <TextBlock Grid.Row="1" Grid.Column="1" Margin="0,8,0,0" Text="{Binding CurrentUserId}" TextWrapping="Wrap" />
+              <TextBlock Grid.Row="2" Margin="0,8,0,0" Text="在线摘要" Foreground="{StaticResource TextMutedBrush}" />
+              <TextBlock Grid.Row="2" Grid.Column="1" Margin="0,8,0,0" Text="{Binding FooterText}" TextWrapping="Wrap" />
+              <TextBlock Grid.Row="3" Margin="0,8,0,0" Text="待接来电" Foreground="{StaticResource TextMutedBrush}" />
+              <TextBlock Grid.Row="3" Grid.Column="1" Margin="0,8,0,0" Text="{Binding IncomingCallText}" TextWrapping="Wrap" />
+            </Grid>
+          </StackPanel>
+        </Border>
+
+        <views:OnlineUsersPanelView Grid.Column="2" Margin="0,0,0,18" />
+
+        <Border Grid.Row="1" Classes="card" Margin="0,0,18,0">
+          <StackPanel Spacing="10">
+            <TextBlock Classes="section-title" Text="主页预留 A" />
+            <TextBlock Text="后续可以放会话列表、最近文件、附件中心或多端同步概览。"
+                       Foreground="{StaticResource TextMutedBrush}"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <Border Grid.Row="1" Grid.Column="1" Classes="card" Margin="0,0,18,0">
+          <StackPanel Spacing="10">
+            <TextBlock Classes="section-title" Text="主页预留 B" />
+            <TextBlock Text="后续可以放设备健康检查、密钥状态、通知中心或安全设置入口。"
+                       Foreground="{StaticResource TextMutedBrush}"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <Border Grid.Row="1" Grid.Column="2" Classes="card">
+          <StackPanel Spacing="10">
+            <TextBlock Classes="section-title" Text="直播模块入口" />
+            <TextBlock Text="{Binding ActiveLiveRoomText}" FontWeight="SemiBold" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding LiveRoomStatusText}"
+                       Foreground="{StaticResource TextMutedBrush}"
+                       TextWrapping="Wrap" />
+            <Button Content="进入主播模块" Click="OpenLiveHostWindow" />
+            <Button Content="进入观众模块" Click="OpenLiveAudienceWindow" />
+          </StackPanel>
+        </Border>
+      </Grid>
+    </ScrollViewer>
+
+    <views:FooterStatusView Grid.Row="2" />
+  </Grid>
+</Window>

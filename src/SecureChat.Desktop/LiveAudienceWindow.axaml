@@ -1,0 +1,26 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="using:SecureChat.Desktop.Views"
+        x:Class="SecureChat.Desktop.LiveAudienceWindow"
+        Width="1480"
+        Height="920"
+        MinWidth="1180"
+        MinHeight="760"
+        Title="SecureChat | 观众模块"
+        FontFamily="{StaticResource AppFont}"
+        Background="{StaticResource WindowBackgroundBrush}">
+  <Grid RowDefinitions="Auto,*,Auto" Margin="24">
+    <Border Classes="card" Background="{StaticResource SurfaceBrush}" Padding="20">
+      <StackPanel Spacing="6">
+        <TextBlock Text="观众模块" FontSize="30" FontWeight="Bold" />
+        <TextBlock Text="这里专门处理房间目录、选房加入和观看体验；主播的推流控制和房间运营不再出现在这个窗口里。"
+                   Foreground="{StaticResource TextMutedBrush}"
+                   TextWrapping="Wrap" />
+      </StackPanel>
+    </Border>
+
+    <views:LiveAudiencePageView Grid.Row="1" Margin="0,18,0,18" />
+
+    <views:FooterStatusView Grid.Row="2" />
+  </Grid>
+</Window>

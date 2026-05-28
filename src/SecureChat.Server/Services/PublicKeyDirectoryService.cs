@@ -20,4 +20,20 @@ public sealed class PublicKeyDirectoryService
             return _publicKeys.TryGetValue(userId, out var value) ? value : null;
         }
     }
+
+    public void RenameUserId(string currentUserId, string newUserId)
+    {
+        if (string.Equals(currentUserId, newUserId, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        lock (_lock)
+        {
+            if (_publicKeys.Remove(currentUserId, out var publicKeyPem))
+            {
+                _publicKeys[newUserId] = publicKeyPem;
+            }
+        }
+    }
 }

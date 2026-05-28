@@ -1,0 +1,7 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="SecureChat.Desktop.Views.FooterStatusView">
+  <Border Background="{StaticResource SurfaceBrush}" CornerRadius="14" Padding="16,12">
+    <TextBlock Text="{Binding FooterText}" Foreground="{StaticResource TextMutedBrush}" />
+  </Border>
+</UserControl>

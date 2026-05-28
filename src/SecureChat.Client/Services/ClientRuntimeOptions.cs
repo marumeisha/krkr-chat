@@ -4,7 +4,7 @@ namespace SecureChat.Client.Services;
 
 public sealed class ClientRuntimeOptions
 {
-    public Uri ApiBaseUri { get; init; } = new("http://localhost:5000");
+    public Uri ApiBaseUri { get; init; } = new("https://krkr.chat");
 
     public static ClientRuntimeOptions Load()
     {

@@ -59,6 +59,25 @@ public sealed class OnlinePresenceService
         };
     }
 
+    public void RenameUserId(string currentUserId, string newUserId)
+    {
+        if (string.Equals(currentUserId, newUserId, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var matches = _records
+            .Where(pair => string.Equals(pair.Value.UserId, currentUserId, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        foreach (var match in matches)
+        {
+            var updated = match.Value with { UserId = newUserId };
+            _records.TryRemove(match.Key, out _);
+            _records[BuildKey(updated.UserId, updated.DeviceId)] = updated;
+        }
+    }
+
     private static string BuildKey(string userId, string deviceId) => $"{userId}::{deviceId}";
 
     private sealed record PresenceRecord

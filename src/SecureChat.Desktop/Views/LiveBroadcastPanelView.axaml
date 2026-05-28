@@ -1,0 +1,9 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:views="using:SecureChat.Desktop.Views"
+             x:Class="SecureChat.Desktop.Views.LiveBroadcastPanelView">
+  <Grid>
+    <views:LiveHostPageView IsVisible="{Binding ShowLiveHostLayout}" />
+    <views:LiveAudiencePageView IsVisible="{Binding ShowLiveAudienceLayout}" />
+  </Grid>
+</UserControl>

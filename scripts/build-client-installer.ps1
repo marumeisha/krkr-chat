@@ -1,6 +1,6 @@
 param(
     [string]$Version = "1.0.0",
-    [string]$ApiBaseUrl = "",
+    [string]$ApiBaseUrl = "https://krkr.chat",
     [switch]$NoPublish
 )
 

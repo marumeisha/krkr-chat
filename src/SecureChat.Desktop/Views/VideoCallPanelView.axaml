@@ -1,0 +1,235 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="SecureChat.Desktop.Views.VideoCallPanelView">
+  <Border Classes="card" Background="{StaticResource SurfaceAltBrush}">
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Spacing="16">
+        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+          <TextBlock Classes="section-title"
+                     Text="WebRTC 视频通话"
+                     VerticalAlignment="Center" />
+          <Border Grid.Column="1"
+                  Background="#1F000000"
+                  BorderBrush="#33FFFFFF"
+                  BorderThickness="1"
+                  CornerRadius="999"
+                  Padding="14,8">
+            <TextBlock Text="{Binding ActiveCallPeerText}"
+                       MaxWidth="360"
+                       TextWrapping="Wrap"
+                       FontWeight="SemiBold" />
+          </Border>
+
+          <TextBlock Grid.Row="1"
+                     Grid.ColumnSpan="2"
+                     Margin="0,8,0,0"
+                     Text="{Binding VideoStatusText}"
+                     TextWrapping="Wrap"
+                     Foreground="{StaticResource TextMutedBrush}" />
+        </Grid>
+
+        <Border Background="#FF0A1B20"
+                BorderBrush="#334DD0C8"
+                BorderThickness="1"
+                CornerRadius="24"
+                Padding="18"
+                BoxShadow="0 22 56 0 #66000000">
+          <StackPanel Spacing="16">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto"
+                  RowDefinitions="Auto,Auto,Auto">
+              <Button Content="发起呼叫"
+                      Command="{Binding PrepareVideoCallCommand}" />
+              <Button Grid.Column="2"
+                      Margin="12,0,0,0"
+                      Content="接听"
+                      Command="{Binding AnswerIncomingCallCommand}" />
+              <Button Grid.Column="3"
+                      Margin="12,0,0,0"
+                      Content="刷新设备"
+                      Command="{Binding RefreshVideoDevicesCommand}" />
+              <Button Grid.Column="4"
+                      Margin="12,0,0,0"
+                      Content="挂断"
+                      Command="{Binding HangupCallCommand}"
+                      IsEnabled="{Binding IsCallActive}" />
+
+              <TextBlock Grid.Row="1"
+                         Text="视频输入"
+                         VerticalAlignment="Center"
+                         Foreground="{StaticResource TextMutedBrush}" />
+              <ComboBox Grid.Row="1"
+                        Grid.Column="1"
+                        Margin="12,12,0,0"
+                        ItemsSource="{Binding VideoInputModes}"
+                        SelectedItem="{Binding SelectedVideoInputMode}" />
+              <TextBlock Grid.Row="1"
+                         Grid.Column="2"
+                         Margin="14,12,0,0"
+                         Text="摄像头"
+                         VerticalAlignment="Center"
+                         Foreground="{StaticResource TextMutedBrush}" />
+              <ComboBox Grid.Row="1"
+                        Grid.Column="3"
+                        Grid.ColumnSpan="2"
+                        Margin="10,12,0,0"
+                        ItemsSource="{Binding CameraDevices}"
+                        SelectedItem="{Binding SelectedCameraDevice}"
+                        IsEnabled="{Binding IsCameraInputSelected}" />
+
+              <TextBlock Grid.Row="2"
+                         Text="共享目标"
+                         Margin="0,12,0,0"
+                         VerticalAlignment="Center"
+                         Foreground="{StaticResource TextMutedBrush}" />
+              <ComboBox Grid.Row="2"
+                        Grid.Column="1"
+                        Margin="12,12,0,0"
+                        ItemsSource="{Binding ScreenCaptureTargets}"
+                        SelectedItem="{Binding SelectedScreenCaptureTarget}"
+                        IsEnabled="{Binding IsScreenInputSelected}" />
+              <TextBlock Grid.Row="2"
+                         Grid.Column="2"
+                         Margin="14,12,0,0"
+                         Text="播放器高度"
+                         VerticalAlignment="Center"
+                         Foreground="{StaticResource TextMutedBrush}" />
+              <Slider Grid.Row="2"
+                      Grid.Column="3"
+                      Margin="10,12,10,0"
+                      Minimum="320"
+                      Maximum="720"
+                      Value="{Binding VideoViewportHeight}"
+                      TickFrequency="20" />
+              <TextBlock Grid.Row="2"
+                         Grid.Column="4"
+                         Margin="0,12,0,0"
+                         Text="{Binding VideoViewportHeight, StringFormat=' {0:0}px'}"
+                         VerticalAlignment="Center"
+                         Foreground="{StaticResource TextMutedBrush}" />
+            </Grid>
+
+            <Border Background="#CC081116" CornerRadius="18" Padding="16">
+              <Grid ColumnDefinitions="Auto,*,Auto,*">
+                <TextBlock Text="麦克风"
+                           VerticalAlignment="Center"
+                           Foreground="{StaticResource TextMutedBrush}" />
+                <ComboBox Grid.Column="1"
+                          Margin="12,0,0,0"
+                          ItemsSource="{Binding MicrophoneDevices}"
+                          SelectedItem="{Binding SelectedMicrophoneDevice}" />
+                <CheckBox Grid.Column="2"
+                          Margin="18,0,0,0"
+                          VerticalAlignment="Center"
+                          Content="混入系统音频"
+                          IsChecked="{Binding MixSystemAudioEnabled}" />
+                <ComboBox Grid.Column="3"
+                          Margin="12,0,0,0"
+                          ItemsSource="{Binding SystemAudioDevices}"
+                          SelectedItem="{Binding SelectedSystemAudioDevice}"
+                          IsEnabled="{Binding MixSystemAudioEnabled}" />
+              </Grid>
+            </Border>
+
+            <Border Background="#CC081116" CornerRadius="18" Padding="16">
+              <StackPanel Spacing="12">
+                <TextBlock Text="媒体质量" FontWeight="SemiBold" />
+                <Grid ColumnDefinitions="Auto,120,Auto,120" RowDefinitions="Auto,Auto,Auto">
+                  <TextBlock Text="音频码率"
+                             VerticalAlignment="Center"
+                             Foreground="{StaticResource TextMutedBrush}" />
+                  <ComboBox Grid.Column="1"
+                            Margin="12,0,0,0"
+                            ItemsSource="{Binding AudioBitrateOptionsKbps}"
+                            SelectedItem="{Binding SelectedAudioBitrateKbps}" />
+                  <TextBlock Grid.Column="2"
+                             Margin="18,0,0,0"
+                             Text="摄像头码率"
+                             VerticalAlignment="Center"
+                             Foreground="{StaticResource TextMutedBrush}" />
+                  <ComboBox Grid.Column="3"
+                            Margin="12,0,0,0"
+                            ItemsSource="{Binding CameraBitrateOptionsKbps}"
+                            SelectedItem="{Binding SelectedCameraBitrateKbps}" />
+
+                  <TextBlock Grid.Row="1"
+                             Margin="0,12,0,0"
+                             Text="摄像头帧率"
+                             VerticalAlignment="Center"
+                             Foreground="{StaticResource TextMutedBrush}" />
+                  <ComboBox Grid.Row="1"
+                            Grid.Column="1"
+                            Margin="12,12,0,0"
+                            ItemsSource="{Binding CameraFrameRateOptions}"
+                            SelectedItem="{Binding SelectedCameraFrameRate}" />
+                  <TextBlock Grid.Row="1"
+                             Grid.Column="2"
+                             Margin="18,12,0,0"
+                             Text="屏幕码率"
+                             VerticalAlignment="Center"
+                             Foreground="{StaticResource TextMutedBrush}" />
+                  <ComboBox Grid.Row="1"
+                            Grid.Column="3"
+                            Margin="12,12,0,0"
+                            ItemsSource="{Binding ScreenShareBitrateOptionsKbps}"
+                            SelectedItem="{Binding SelectedScreenShareBitrateKbps}" />
+
+                  <TextBlock Grid.Row="2"
+                             Margin="0,12,0,0"
+                             Text="屏幕帧率"
+                             VerticalAlignment="Center"
+                             Foreground="{StaticResource TextMutedBrush}" />
+                  <ComboBox Grid.Row="2"
+                            Grid.Column="1"
+                            Margin="12,12,0,0"
+                            ItemsSource="{Binding ScreenShareFrameRateOptions}"
+                            SelectedItem="{Binding SelectedScreenShareFrameRate}" />
+                </Grid>
+                <TextBlock Text="{Binding MediaQualitySelectionText}"
+                           TextWrapping="Wrap"
+                           Foreground="{StaticResource TextMutedBrush}" />
+              </StackPanel>
+            </Border>
+
+            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="18" Padding="16">
+              <StackPanel Spacing="8">
+                <TextBlock Text="热切换说明" FontWeight="SemiBold" />
+                <TextBlock Text="通话进行中直接切换输入源会立即生效，不需要重新拨号。"
+                           TextWrapping="Wrap"
+                           Foreground="{StaticResource TextMutedBrush}" />
+                <TextBlock Text="{Binding CameraSelectionText}"
+                           TextWrapping="Wrap"
+                           Foreground="{StaticResource TextMutedBrush}" />
+                <TextBlock Text="{Binding ScreenCaptureSelectionText}"
+                           TextWrapping="Wrap"
+                           Foreground="{StaticResource TextMutedBrush}" />
+                <TextBlock Text="{Binding AudioInputSelectionText}"
+                           TextWrapping="Wrap"
+                           Foreground="{StaticResource TextMutedBrush}" />
+                <TextBlock Text="{Binding IncomingCallText}"
+                           TextWrapping="Wrap"
+                           Foreground="{StaticResource TextMutedBrush}" />
+              </StackPanel>
+            </Border>
+
+            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="18" Padding="16">
+              <StackPanel Spacing="8">
+                <TextBlock Text="链路阶段" FontWeight="SemiBold" />
+                <ItemsControl ItemsSource="{Binding VideoStages}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Margin="0,0,0,4"
+                                 TextWrapping="Wrap">
+                        <Run Text="•  " />
+                        <Run Text="{Binding}" />
+                      </TextBlock>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+  </Border>
+</UserControl>

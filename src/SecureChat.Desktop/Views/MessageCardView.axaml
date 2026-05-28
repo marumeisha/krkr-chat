@@ -1,0 +1,14 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="SecureChat.Desktop.Views.MessageCardView">
+  <Border Background="{StaticResource SurfaceAltBrush}" CornerRadius="14" Padding="14" Margin="0,0,0,12">
+    <StackPanel Spacing="8">
+      <TextBlock Text="{Binding Summary}" FontWeight="SemiBold" />
+      <TextBlock Text="{Binding Detail}" TextWrapping="Wrap" />
+      <Button Content="附件另存为"
+              HorizontalAlignment="Left"
+              IsVisible="{Binding HasAttachment}"
+              Click="SaveAttachment_Click" />
+    </StackPanel>
+  </Border>
+</UserControl>

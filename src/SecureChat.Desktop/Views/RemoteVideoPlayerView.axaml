@@ -1,0 +1,122 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="SecureChat.Desktop.Views.RemoteVideoPlayerView">
+  <Border Classes="card"
+          Background="#FF07141A"
+          BorderBrush="#334DD0C8"
+          BorderThickness="1"
+          CornerRadius="28"
+          Padding="16"
+          BoxShadow="0 24 64 0 #66000000">
+    <Grid RowDefinitions="Auto,*">
+      <Grid ColumnDefinitions="*,Auto" Margin="4,4,4,14">
+        <StackPanel Spacing="6">
+          <TextBlock Text="远端播放器"
+                     FontSize="28"
+                     FontWeight="Bold" />
+          <TextBlock Text="主画面独立展示远端视频，控制与设备切换移到右侧面板。"
+                     Foreground="{StaticResource TextMutedBrush}"
+                     TextWrapping="Wrap" />
+        </StackPanel>
+
+        <StackPanel Grid.Column="1"
+              Spacing="10"
+              HorizontalAlignment="Right">
+          <Border Background="#1F000000"
+            BorderBrush="#33FFFFFF"
+            BorderThickness="1"
+            CornerRadius="999"
+            Padding="14,8"
+            VerticalAlignment="Top">
+            <TextBlock Text="{Binding ActiveCallPeerText}"
+                 MaxWidth="280"
+                 TextWrapping="Wrap"
+                 FontWeight="SemiBold" />
+          </Border>
+
+          <StackPanel Orientation="Horizontal"
+                HorizontalAlignment="Right"
+                Spacing="8">
+            <Button Content="{Binding RemoteVideoFullscreenButtonText}"
+              Click="ToggleRemoteFullscreen" />
+            <Button Content="{Binding LocalPreviewToggleText}"
+              Click="ToggleLocalPreviewVisibility" />
+          </StackPanel>
+        </StackPanel>
+      </Grid>
+
+      <Border Grid.Row="1"
+              Height="{Binding VideoViewportHeight}"
+              MinHeight="320"
+              MaxHeight="720"
+              Background="#FF020A0E"
+              CornerRadius="24"
+              ClipToBounds="True">
+        <Grid>
+          <Image Source="{Binding RemoteVideoFrame}" Stretch="UniformToFill" />
+          <Border Background="#38040C11" />
+
+          <StackPanel Margin="20"
+                      HorizontalAlignment="Left"
+                      VerticalAlignment="Top"
+                      Spacing="8">
+            <Border Background="#99071318"
+                    CornerRadius="999"
+                    Padding="12,6">
+              <TextBlock Text="LIVE"
+                         FontWeight="Bold" />
+            </Border>
+            <TextBlock Text="{Binding ActiveCallPeerText}"
+                       MaxWidth="420"
+                       FontSize="20"
+                       FontWeight="Bold"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+
+          <Border Margin="18"
+                  Padding="14,10"
+                  HorizontalAlignment="Left"
+                  VerticalAlignment="Bottom"
+                  Background="#B30A171C"
+                  CornerRadius="18">
+            <StackPanel Spacing="4">
+              <TextBlock Text="独立播放器模式"
+                         FontWeight="SemiBold" />
+              <TextBlock Text="远端视频保持主画面，输入源可在通话中热切换。"
+                         Foreground="{StaticResource TextMutedBrush}"
+                         TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+
+            <Border Margin="0,20,20,0"
+              Width="248"
+              Height="154"
+              HorizontalAlignment="Right"
+              VerticalAlignment="Top"
+              Background="#DA11252D"
+              BorderBrush="#55FFFFFF"
+              BorderThickness="1"
+              CornerRadius="18"
+              ClipToBounds="True"
+              BoxShadow="0 12 28 0 #66000000"
+              IsVisible="{Binding LocalPreviewVisible}">
+            <Grid>
+              <Image Source="{Binding LocalVideoFrame}" Stretch="UniformToFill" />
+              <Border Background="#22000000" />
+              <Border Margin="10"
+                      HorizontalAlignment="Left"
+                      VerticalAlignment="Top"
+                      Background="#88071115"
+                      CornerRadius="999"
+                      Padding="10,5">
+                <TextBlock Text="本地预览"
+                           FontSize="12"
+                           FontWeight="SemiBold" />
+              </Border>
+            </Grid>
+          </Border>
+        </Grid>
+      </Border>
+    </Grid>
+  </Border>
+</UserControl>

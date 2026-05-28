@@ -32,4 +32,37 @@ public sealed class MessageService
                 .ToList();
         }
     }
+
+    public void RenameUserId(string currentUserId, string newUserId)
+    {
+        if (string.Equals(currentUserId, newUserId, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        lock (_lock)
+        {
+            for (var index = 0; index < _messages.Count; index++)
+            {
+                var message = _messages[index];
+                var senderUserId = string.Equals(message.SenderUserId, currentUserId, StringComparison.OrdinalIgnoreCase)
+                    ? newUserId
+                    : message.SenderUserId;
+                var recipientUserId = string.Equals(message.RecipientUserId, currentUserId, StringComparison.OrdinalIgnoreCase)
+                    ? newUserId
+                    : message.RecipientUserId;
+
+                if (senderUserId == message.SenderUserId && recipientUserId == message.RecipientUserId)
+                {
+                    continue;
+                }
+
+                _messages[index] = message with
+                {
+                    SenderUserId = senderUserId,
+                    RecipientUserId = recipientUserId
+                };
+            }
+        }
+    }
 }

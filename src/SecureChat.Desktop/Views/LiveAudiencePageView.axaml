@@ -1,0 +1,206 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="SecureChat.Desktop.Views.LiveAudiencePageView">
+  <ScrollViewer VerticalScrollBarVisibility="Auto"
+                HorizontalScrollBarVisibility="Disabled">
+    <Grid ColumnDefinitions="1.7*,0.98*" Margin="0,0,6,0">
+      <Border Classes="card"
+              Margin="0,0,18,0"
+              Background="#FF08141D"
+              BorderBrush="#334DD0C8"
+              BorderThickness="1"
+              CornerRadius="28"
+              Padding="18">
+        <Grid RowDefinitions="Auto,*,Auto">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="6">
+              <TextBlock Text="观众观看页" FontSize="14" FontWeight="Bold" Foreground="#77E0FF" />
+              <TextBlock Text="{Binding ActiveLiveRoomDisplayName}" FontSize="30" FontWeight="Bold" />
+              <TextBlock Text="{Binding LiveRoomHeroHintText}"
+                         Foreground="{StaticResource TextMutedBrush}"
+                         TextWrapping="Wrap" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1"
+                        Margin="12,0,0,0"
+                        Orientation="Horizontal"
+                        Spacing="8"
+                        VerticalAlignment="Top">
+              <Border Background="#D92C5D9B" CornerRadius="999" Padding="12,6">
+                <TextBlock Text="{Binding LiveRoomRoleBadgeText}" FontWeight="Bold" />
+              </Border>
+              <Button Content="离开房间"
+                      Command="{Binding LeaveLiveRoomCommand}"
+                      IsEnabled="{Binding IsLiveRoomActive}" />
+            </StackPanel>
+          </Grid>
+
+          <Border Grid.Row="1"
+                  Margin="0,16,0,0"
+                  Background="#FF020A0E"
+                  CornerRadius="24"
+                  ClipToBounds="True"
+                  MinHeight="520">
+            <Grid>
+              <Image Source="{Binding LiveRoomVideoFrame}" Stretch="UniformToFill" />
+              <Border Background="#22020A0E" />
+
+              <StackPanel Margin="22"
+                          HorizontalAlignment="Left"
+                          VerticalAlignment="Top"
+                          Spacing="10">
+                <Border Background="#B0281F41" CornerRadius="999" Padding="12,6">
+                  <TextBlock Text="观看中" FontWeight="Bold" />
+                </Border>
+
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Border Background="#A8142028" CornerRadius="999" Padding="12,6">
+                    <TextBlock Text="{Binding ActiveLiveRoomViewerCountText}" FontWeight="SemiBold" />
+                  </Border>
+                  <Border Background="#A8142028" CornerRadius="999" Padding="12,6">
+                    <TextBlock Text="{Binding ActiveLiveRoomHostText}" FontWeight="SemiBold" />
+                  </Border>
+                </StackPanel>
+              </StackPanel>
+
+              <Border Margin="20"
+                      HorizontalAlignment="Left"
+                      VerticalAlignment="Bottom"
+                      Background="#C20A171C"
+                      CornerRadius="18"
+                      Padding="16,12">
+                <StackPanel Spacing="4" MaxWidth="460">
+                  <TextBlock Text="{Binding LiveRoomRoleSummaryText}" FontWeight="SemiBold" />
+                  <TextBlock Text="{Binding LiveRoomStatusText}"
+                             Foreground="{StaticResource TextMutedBrush}"
+                             TextWrapping="Wrap" />
+                </StackPanel>
+              </Border>
+            </Grid>
+          </Border>
+
+          <Grid Grid.Row="2" ColumnDefinitions="0.96*,1.04*" Margin="0,16,0,0">
+            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="18" Padding="16">
+              <StackPanel Spacing="12">
+                <TextBlock Text="进入观看" FontSize="18" FontWeight="Bold" />
+                <TextBlock Text="观众页只保留选房、加入和当前播放相关信息，避免和主播的推流控制混杂。"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           TextWrapping="Wrap" />
+                <TextBox Watermark="输入直播房间号"
+                         Text="{Binding LiveRoomCodeInput}" />
+                <Grid ColumnDefinitions="*,*">
+                  <Button Content="加入观看"
+                          Command="{Binding JoinLiveRoomCommand}" />
+                  <Button Grid.Column="1"
+                          Margin="10,0,0,0"
+                          Content="加入选中房间"
+                          Command="{Binding JoinSelectedLiveRoomCommand}" />
+                </Grid>
+                <TextBlock Text="{Binding ActiveLiveRoomText}"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           TextWrapping="Wrap" />
+              </StackPanel>
+            </Border>
+
+            <Border Grid.Column="1"
+                    Margin="16,0,0,0"
+                    Background="{StaticResource SurfaceBrush}"
+                    CornerRadius="18"
+                    Padding="16">
+              <StackPanel Spacing="12">
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBlock Text="观看动态" FontSize="18" FontWeight="Bold" />
+                  <Button Grid.Column="1"
+                          Margin="10,0,0,0"
+                          Content="刷新目录"
+                          Command="{Binding RefreshLiveRoomsCommand}" />
+                </Grid>
+                <TextBlock Text="{Binding LiveRoomDirectoryStatusText}"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           TextWrapping="Wrap" />
+                <ItemsControl ItemsSource="{Binding LiveRoomStages}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Margin="0,0,0,6" TextWrapping="Wrap">
+                        <Run Text="•  " />
+                        <Run Text="{Binding}" />
+                      </TextBlock>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+          </Grid>
+        </Grid>
+      </Border>
+
+      <StackPanel Grid.Column="1" Spacing="16">
+        <Border Classes="card" Background="{StaticResource SurfaceBrush}" Padding="16">
+          <StackPanel Spacing="10">
+            <TextBlock Text="房间信息" FontSize="20" FontWeight="Bold" />
+            <TextBlock Text="{Binding ActiveLiveRoomDisplayName}" FontWeight="SemiBold" />
+            <TextBlock Text="{Binding ActiveLiveRoomHostText}" Foreground="{StaticResource TextMutedBrush}" />
+            <TextBlock Text="{Binding ActiveLiveRoomViewerCountText}" Foreground="{StaticResource TextMutedBrush}" />
+            <TextBlock Text="{Binding LiveRoomRoleSummaryText}"
+                       Foreground="{StaticResource TextMutedBrush}"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <Border Classes="card" Background="{StaticResource SurfaceBrush}" Padding="16">
+          <Grid RowDefinitions="Auto,Auto,*,Auto">
+            <TextBlock Text="公开直播目录" FontSize="20" FontWeight="Bold" />
+            <TextBlock Grid.Row="1"
+                       Margin="0,12,0,0"
+                       Text="观众页保留房间目录和一键加入入口；未入场时默认展示这一页。"
+                       Foreground="{StaticResource TextMutedBrush}"
+                       TextWrapping="Wrap" />
+
+            <ListBox Grid.Row="2"
+                     Margin="0,12,0,0"
+                     MinHeight="420"
+                     ItemsSource="{Binding PublicLiveRooms}"
+                     SelectedItem="{Binding SelectedPublicLiveRoom}">
+              <ListBox.ItemTemplate>
+                <DataTemplate>
+                  <Border Margin="0,0,0,10"
+                          Padding="14"
+                          Background="#14000000"
+                          BorderBrush="#1DFFFFFF"
+                          BorderThickness="1"
+                          CornerRadius="14">
+                    <StackPanel Spacing="6">
+                      <TextBlock Text="{Binding DisplayName}" FontWeight="Bold" />
+                      <TextBlock Text="{Binding HostUserId, StringFormat=UP主: {0}}"
+                                 Foreground="{StaticResource TextMutedBrush}" />
+                      <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="{Binding RoomId, StringFormat=房间号: {0}}"
+                                   Foreground="{StaticResource TextMutedBrush}" />
+                        <Border Grid.Column="1" Margin="10,0,0,0" Background="#1F000000" CornerRadius="999" Padding="10,4">
+                          <TextBlock Text="{Binding ViewerCount, StringFormat={}{0} 观看}"
+                                     FontSize="12"
+                                     FontWeight="SemiBold" />
+                        </Border>
+                      </Grid>
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+
+            <Grid Grid.Row="3" Margin="0,12,0,0" ColumnDefinitions="*,Auto">
+              <TextBlock Text="{Binding LiveRoomDirectoryStatusText}"
+                         VerticalAlignment="Center"
+                         Foreground="{StaticResource TextMutedBrush}"
+                         TextWrapping="Wrap" />
+              <Button Grid.Column="1"
+                      Margin="10,0,0,0"
+                      Content="加入选中房间"
+                      Command="{Binding JoinSelectedLiveRoomCommand}" />
+            </Grid>
+          </Grid>
+        </Border>
+      </StackPanel>
+    </Grid>
+  </ScrollViewer>
+</UserControl>

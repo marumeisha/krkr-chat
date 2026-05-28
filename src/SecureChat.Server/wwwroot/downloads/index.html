@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SecureChat Desktop 下载</title>
+  <style>
+    :root {
+      --bg: #061319;
+      --panel: rgba(9, 29, 36, 0.82);
+      --panel-strong: rgba(11, 39, 48, 0.94);
+      --line: rgba(111, 221, 195, 0.18);
+      --text: #eefaf7;
+      --muted: #9bc5bc;
+      --accent: #ffb357;
+      --accent-strong: #ff8d3a;
+      --success: #78e4b6;
+      --radius: 24px;
+      --shadow: 0 24px 70px rgba(1, 9, 12, 0.42);
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 18% 18%, rgba(120, 228, 182, 0.2), transparent 28%),
+        radial-gradient(circle at 82% 12%, rgba(255, 179, 87, 0.18), transparent 24%),
+        linear-gradient(160deg, #041015 0%, #0b2028 48%, #061318 100%);
+    }
+    a { color: inherit; }
+    .shell {
+      width: min(1120px, calc(100vw - 32px));
+      margin: 24px auto 40px;
+    }
+    .hero,
+    .card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(20px);
+    }
+    .hero {
+      padding: 30px;
+      overflow: hidden;
+      position: relative;
+      background: linear-gradient(145deg, rgba(10, 34, 43, 0.94), rgba(7, 22, 29, 0.9));
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -40px;
+      bottom: -60px;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 179, 87, 0.24), transparent 70%);
+      filter: blur(8px);
+    }
+    .eyebrow {
+      margin: 0 0 10px;
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--success);
+    }
+    h1, h2, p { margin: 0; }
+    h1 {
+      font-size: clamp(32px, 4vw, 56px);
+      line-height: 1.02;
+      max-width: 8ch;
+    }
+    .hero-copy {
+      margin-top: 14px;
+      max-width: 58ch;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+    .hero-grid,
+    .grid,
+    .facts {
+      display: grid;
+      gap: 18px;
+    }
+    .hero-grid {
+      grid-template-columns: 1.45fr 0.95fr;
+      align-items: end;
+    }
+    .facts {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .fact,
+    .card {
+      background: var(--panel);
+    }
+    .fact {
+      padding: 14px 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .fact-label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+    .fact-value {
+      font-size: 15px;
+      font-weight: 600;
+      word-break: break-word;
+    }
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 22px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 20px;
+      border: 0;
+      border-radius: 999px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 160ms ease, opacity 160ms ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn.primary {
+      color: #1f1100;
+      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+    }
+    .btn.secondary {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .grid {
+      margin-top: 18px;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+    .card {
+      padding: 24px;
+      border: 1px solid var(--line);
+    }
+    .span-5 { grid-column: span 5; }
+    .span-7 { grid-column: span 7; }
+    .mono {
+      font-family: Consolas, "Cascadia Mono", monospace;
+      font-size: 13px;
+      word-break: break-all;
+    }
+    .muted {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .download-panel {
+      background: linear-gradient(155deg, rgba(12, 44, 53, 0.96), rgba(9, 25, 31, 0.92));
+    }
+    .download-meta {
+      margin-top: 16px;
+      display: grid;
+      gap: 12px;
+    }
+    .download-meta > div {
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+    .status {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      line-height: 1.55;
+    }
+    .status.warning {
+      color: #261700;
+      background: linear-gradient(135deg, #ffd488, #ffb85a);
+    }
+    .steps {
+      margin: 16px 0 0;
+      padding-left: 20px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .steps li + li { margin-top: 8px; }
+    @media (max-width: 920px) {
+      .hero-grid { grid-template-columns: 1fr; }
+      .facts { grid-template-columns: 1fr; }
+      .span-5, .span-7 { grid-column: span 12; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div class="hero-grid">
+        <div>
+          <p class="eyebrow">SecureChat Desktop</p>
+          <h1>Windows 安装包下载</h1>
+          <p class="hero-copy">这个页面用于分发 Avalonia 桌面客户端安装包。只要你的服务端对外可访问，别人打开这个地址就能直接下载安装。</p>
+          <div class="toolbar">
+            <a id="downloadButton" class="btn primary" href="/downloads/SecureChat.Desktop.Setup.exe" download>下载桌面安装包</a>
+            <a class="btn secondary" href="/">返回服务端主页</a>
+          </div>
+          <div id="downloadStatus" class="status">正在读取安装包信息...</div>
+        </div>
+        <div class="facts">
+          <div class="fact">
+            <div class="fact-label">发布通道</div>
+            <div class="fact-value">现有 SecureChat.Server 静态文件站点</div>
+          </div>
+          <div class="fact">
+            <div class="fact-label">目标平台</div>
+            <div class="fact-value">Windows x64 桌面客户端</div>
+          </div>
+          <div class="fact">
+            <div class="fact-label">默认文件名</div>
+            <div class="fact-value mono">SecureChat.Desktop.Setup.exe</div>
+          </div>
+          <div class="fact">
+            <div class="fact-label">入口地址</div>
+            <div class="fact-value mono">/downloads/</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card span-7 download-panel">
+        <h2>当前发布版本</h2>
+        <p class="muted">发布脚本会把最新安装包复制到这个页面的固定下载地址，并生成元数据，方便别人确认版本、大小和校验值。</p>
+        <div class="download-meta">
+          <div>
+            <span class="label">版本</span>
+            <strong id="version">未发布</strong>
+          </div>
+          <div>
+            <span class="label">文件大小</span>
+            <strong id="fileSize">-</strong>
+          </div>
+          <div>
+            <span class="label">SHA-256</span>
+            <strong id="sha256" class="mono">-</strong>
+          </div>
+          <div>
+            <span class="label">最近更新时间</span>
+            <strong id="updatedUtc">-</strong>
+          </div>
+        </div>
+      </article>
+
+      <article class="card span-5">
+        <h2>发布方法</h2>
+        <p class="muted">你本地先生成安装包，再把它同步到服务端站点目录。之后公开服务端地址即可对外下载。</p>
+        <ol class="steps">
+          <li>先运行安装包构建脚本，生成最新的桌面安装包。</li>
+          <li>再运行发布脚本，把安装包复制到 <span class="mono">src/SecureChat.Server/wwwroot/downloads</span>。</li>
+          <li>启动服务端后，访问 <span class="mono">/downloads/</span> 检查页面和下载链接。</li>
+          <li>如果你已经配置 Cloudflare Tunnel 或公网入口，把这个下载页地址发给别人即可。</li>
+        </ol>
+      </article>
+    </section>
+  </div>
+
+  <script>
+    const metadataUrl = '/downloads/latest.json';
+    const downloadButton = document.getElementById('downloadButton');
+    const downloadStatus = document.getElementById('downloadStatus');
+    const versionEl = document.getElementById('version');
+    const fileSizeEl = document.getElementById('fileSize');
+    const sha256El = document.getElementById('sha256');
+    const updatedUtcEl = document.getElementById('updatedUtc');
+
+    function formatBytes(size) {
+      const units = ['B', 'KB', 'MB', 'GB'];
+      let value = Number(size || 0);
+      let index = 0;
+      while (value >= 1024 && index < units.length - 1) {
+        value /= 1024;
+        index += 1;
+      }
+      return `${value.toFixed(value >= 100 || index === 0 ? 0 : 2)} ${units[index]}`;
+    }
+
+    async function loadMetadata() {
+      try {
+        const response = await fetch(metadataUrl, { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error('下载元数据尚未生成。请先运行发布脚本。');
+        }
+
+        const payload = await response.json();
+        versionEl.textContent = payload.version || '未知版本';
+        fileSizeEl.textContent = formatBytes(payload.sizeBytes);
+        sha256El.textContent = payload.sha256 || '-';
+        updatedUtcEl.textContent = payload.updatedUtc ? new Date(payload.updatedUtc).toLocaleString() : '-';
+
+        if (payload.downloadPath) {
+          downloadButton.href = payload.downloadPath;
+        }
+
+        downloadStatus.textContent = '安装包已就绪，可以直接对外分发。';
+      } catch (error) {
+        downloadStatus.className = 'status warning';
+        downloadStatus.textContent = String(error.message || error);
+        versionEl.textContent = '未发布';
+      }
+    }
+
+    loadMetadata();
+  </script>
+</body>
+</html>

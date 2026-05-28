@@ -16,12 +16,15 @@ public sealed class JwtTokenService
         _options = options.Value;
     }
 
-    public LoginResult CreateToken(CurrentUserResponse user)
+    public LoginResult CreateToken(string externalId, CurrentUserResponse user)
     {
         var expiresAt = DateTimeOffset.UtcNow.AddMinutes(_options.ExpirationMinutes);
         var claims = new List<Claim>
         {
-            new(JwtRegisteredClaimNames.Sub, user.UserId),
+            new(JwtRegisteredClaimNames.Sub, externalId),
+            new(ClaimTypes.NameIdentifier, externalId),
+            new("external_id", externalId),
+            new("user_id", user.UserId),
             new(JwtRegisteredClaimNames.UniqueName, user.DisplayName),
             new(JwtRegisteredClaimNames.Email, user.Email),
             new("provider", user.AuthProvider)

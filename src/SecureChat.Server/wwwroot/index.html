@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SecureChat Server Console</title>
+  <style>
+    :root {
+      --bg: #0c1220;
+      --panel: rgba(14, 24, 41, 0.84);
+      --panel-strong: rgba(18, 31, 54, 0.96);
+      --line: rgba(122, 168, 255, 0.18);
+      --text: #edf3ff;
+      --muted: #9eb4d3;
+      --accent: #53d1b6;
+      --accent-strong: #0fa37d;
+      --warning: #ffcf66;
+      --danger: #ff7d6d;
+      --shadow: 0 24px 70px rgba(2, 8, 20, 0.48);
+      --radius: 22px;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(63, 106, 212, 0.35), transparent 32%),
+        radial-gradient(circle at 80% 10%, rgba(33, 169, 140, 0.25), transparent 26%),
+        linear-gradient(160deg, #08101c 0%, #0f1c31 42%, #09111b 100%);
+      min-height: 100vh;
+    }
+    .shell {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 24px auto 40px;
+    }
+    .hero {
+      padding: 28px;
+      border: 1px solid var(--line);
+      border-radius: calc(var(--radius) + 8px);
+      background: linear-gradient(145deg, rgba(15, 29, 52, 0.9), rgba(8, 19, 35, 0.86));
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -80px -110px auto;
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(83, 209, 182, 0.26), transparent 68%);
+      filter: blur(6px);
+    }
+    h1, h2, p { margin: 0; }
+    .eyebrow {
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+    .hero-grid, .grid { display: grid; gap: 18px; }
+    .hero-grid {
+      grid-template-columns: 1.5fr 1fr;
+      align-items: end;
+    }
+    .hero h1 {
+      font-size: clamp(30px, 4vw, 52px);
+      line-height: 1.04;
+      margin-bottom: 12px;
+      max-width: 10ch;
+    }
+    .hero p {
+      max-width: 60ch;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .pill, .metric, .card {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: var(--radius);
+      -webkit-backdrop-filter: blur(18px);
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+    }
+    .pill { padding: 14px 16px; }
+    .pill-label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+    .pill-value {
+      font-size: 16px;
+      font-weight: 600;
+      word-break: break-word;
+    }
+    .grid {
+      margin-top: 18px;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+    .card { padding: 22px; }
+    .card h2 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+    .card p {
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .span-4 { grid-column: span 4; }
+    .span-5 { grid-column: span 5; }
+    .span-6 { grid-column: span 6; }
+    .span-7 { grid-column: span 7; }
+    .span-8 { grid-column: span 8; }
+    .span-12 { grid-column: span 12; }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+    .metric {
+      padding: 18px;
+      min-height: 118px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .metric .label {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .metric .value {
+      font-size: clamp(24px, 4vw, 34px);
+      font-weight: 700;
+      margin-top: 14px;
+    }
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+    .toolbar.compact { margin-top: 8px; }
+    .cleanup-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .cleanup-input {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .cleanup-status { margin-top: 16px; }
+    .cleanup-result {
+      white-space: pre-wrap;
+      margin-top: 12px;
+    }
+    button,
+    .button-link {
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 160ms ease, opacity 160ms ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    button:hover,
+    .button-link:hover { transform: translateY(-1px); }
+    button:disabled { cursor: wait; opacity: 0.7; }
+    .primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+      color: #04120e;
+    }
+    .secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .status {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      font-size: 14px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+    }
+    .status.warning { color: #1c1300; background: linear-gradient(135deg, #ffd981, var(--warning)); }
+    .status.danger { color: #2c0700; background: linear-gradient(135deg, #ffb0a4, var(--danger)); }
+    .status.success { color: #042218; background: linear-gradient(135deg, #9ef1df, var(--accent)); }
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+    }
+    .table th, .table td {
+      text-align: left;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 14px;
+    }
+    .table th { color: var(--muted); font-weight: 600; }
+    .mono {
+      font-family: Consolas, "Cascadia Mono", monospace;
+      font-size: 13px;
+      word-break: break-all;
+    }
+    .log-list {
+      margin: 14px 0 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 10px;
+      max-height: 280px;
+      overflow: auto;
+    }
+    .log-list li {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--muted);
+      font-family: Consolas, "Cascadia Mono", monospace;
+      font-size: 12px;
+    }
+    .session-list {
+      margin: 14px 0 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 10px;
+      max-height: 320px;
+      overflow: auto;
+    }
+    .session-list li {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .session-list strong {
+      display: block;
+      font-family: Consolas, "Cascadia Mono", monospace;
+      font-size: 13px;
+      margin-bottom: 6px;
+      word-break: break-all;
+    }
+    .session-meta {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .hint {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    @media (max-width: 920px) {
+      .hero-grid { grid-template-columns: 1fr; }
+      .span-4, .span-5, .span-6, .span-7, .span-8, .span-12 { grid-column: span 12; }
+      .metrics { grid-template-columns: 1fr; }
+      .cleanup-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .shell {
+        width: min(100vw, calc(100vw - 20px));
+        margin: 12px auto 24px;
+      }
+      .hero,
+      .card { padding: 18px; }
+      .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .toolbar > button,
+      .toolbar > .button-link,
+      .toolbar > input {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div class="hero-grid">
+        <div>
+          <div class="eyebrow">SecureChat Operations</div>
+          <h1>本地服务端控制台</h1>
+          <p>这个页面用于本机运维：查看服务状态、在线用户、OAuth 配置和 Cloudflare Tunnel 状态，并可在本地直接启动 tunnel。</p>
+        </div>
+        <div class="meta">
+          <div class="pill">
+            <div class="pill-label">服务地址</div>
+            <div id="urls" class="pill-value mono">加载中...</div>
+          </div>
+          <div class="pill">
+            <div class="pill-label">本机</div>
+            <div id="machine" class="pill-value">加载中...</div>
+          </div>
+          <div class="pill">
+            <div class="pill-label">当前时间</div>
+            <div id="nowUtc" class="pill-value">加载中...</div>
+          </div>
+          <div class="pill">
+            <div class="pill-label">模式</div>
+            <div class="pill-value">仅本机可执行管理操作</div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="grid">
+      <article class="card span-7">
+        <h2>服务总览</h2>
+        <p>服务运行状态、OAuth 就绪度和当前在线统计。</p>
+        <div class="metrics">
+          <div class="metric"><div class="label">在线用户</div><div id="onlineUserCount" class="value">-</div></div>
+          <div class="metric"><div class="label">活跃设备</div><div id="activeDeviceCount" class="value">-</div></div>
+          <div class="metric"><div class="label">配置状态</div><div id="configState" class="value">-</div></div>
+        </div>
+      </article>
+      <article class="card span-5">
+        <h2>Cloudflare Tunnel</h2>
+        <p>如果 tunnel 已正确配置，可直接从这里拉起 cloudflared。</p>
+        <div id="tunnelStatus" class="status">读取状态中...</div>
+        <div class="toolbar">
+          <button id="startTunnelButton" class="primary">启动 Cloudflare</button>
+          <button id="refreshButton" class="secondary">刷新状态</button>
+          <a href="/downloads/" class="button-link secondary">打开下载页</a>
+        </div>
+        <div class="hint">
+          期望主机名: <span id="tunnelHostname" class="mono">-</span><br>
+          目标服务: <span id="tunnelServiceUrl" class="mono">-</span>
+        </div>
+      </article>
+      <article class="card span-8">
+        <h2>在线用户</h2>
+        <p>这个视图直接读服务端当前在线快照。</p>
+        <table class="table">
+          <thead><tr><th>用户 ID</th><th>设备数</th><th>最近活跃</th></tr></thead>
+          <tbody id="onlineUsersBody"><tr><td colspan="3">加载中...</td></tr></tbody>
+        </table>
+      </article>
+      <article class="card span-4">
+        <h2>Tunnel 日志</h2>
+        <p>仅显示当前服务进程采集到的最新输出。</p>
+        <ul id="logList" class="log-list"><li>暂无日志</li></ul>
+      </article>
+      <article class="card span-6">
+        <h2>通话 CallId 列表</h2>
+        <p>显示当前服务端仍持有的通话会话，便于快速复制 CallId 做诊断或手动清理。</p>
+        <ul id="callSessionList" class="session-list"><li>加载中...</li></ul>
+      </article>
+      <article class="card span-6">
+        <h2>直播 RoomId 列表</h2>
+        <p>显示当前仍存在的直播房间，可直接复制 RoomId 做诊断或手动清理。</p>
+        <ul id="liveRoomList" class="session-list"><li>加载中...</li></ul>
+      </article>
+      <article class="card span-12">
+        <h2>房间详情</h2>
+        <p>输入 RoomId 后可立即确认这个房间是否还存在于当前服务器，并查看最近活动、连接数、信令条数与观众数。</p>
+        <div class="toolbar compact">
+          <input id="liveRoomLookupId" class="cleanup-input" type="text" placeholder="输入 RoomId，例如 ABCD1234">
+          <button id="lookupLiveRoomButton" class="secondary">查询房间详情</button>
+        </div>
+        <div id="liveRoomLookupStatus" class="status cleanup-status">等待查询</div>
+        <pre id="liveRoomLookupResult" class="hint mono cleanup-result">暂无房间详情</pre>
+      </article>
+      <article class="card span-12">
+        <h2>手动清理</h2>
+        <p>用于立即回收异常残留的通话会话或直播房间，也可以手动触发一次按当前超时配置的批量扫尾。</p>
+        <div class="cleanup-grid">
+          <div>
+            <label for="callCleanupId">通话 CallId</label>
+            <div class="toolbar compact">
+              <input id="callCleanupId" class="cleanup-input" type="text" placeholder="输入 callId">
+              <button id="cleanupCallButton" class="secondary">清理通话</button>
+            </div>
+          </div>
+          <div>
+            <label for="liveRoomCleanupId">直播 RoomId</label>
+            <div class="toolbar compact">
+              <input id="liveRoomCleanupId" class="cleanup-input" type="text" placeholder="输入 roomId">
+              <button id="cleanupLiveRoomButton" class="secondary">清理直播房间</button>
+            </div>
+          </div>
+          <div>
+            <label>批量扫尾</label>
+            <div class="toolbar compact">
+              <button id="cleanupInactiveButton" class="primary">按配置立即扫尾</button>
+            </div>
+          </div>
+        </div>
+        <div id="cleanupStatus" class="status cleanup-status">等待操作</div>
+        <pre id="cleanupResult" class="hint mono cleanup-result">暂无执行结果</pre>
+      </article>
+    </section>
+  </div>
+  <script>
+    const elements = {
+      machine: document.getElementById('machine'),
+      nowUtc: document.getElementById('nowUtc'),
+      urls: document.getElementById('urls'),
+      onlineUserCount: document.getElementById('onlineUserCount'),
+      activeDeviceCount: document.getElementById('activeDeviceCount'),
+      configState: document.getElementById('configState'),
+      tunnelStatus: document.getElementById('tunnelStatus'),
+      tunnelHostname: document.getElementById('tunnelHostname'),
+      tunnelServiceUrl: document.getElementById('tunnelServiceUrl'),
+      onlineUsersBody: document.getElementById('onlineUsersBody'),
+      callSessionList: document.getElementById('callSessionList'),
+      liveRoomList: document.getElementById('liveRoomList'),
+      logList: document.getElementById('logList'),
+      startTunnelButton: document.getElementById('startTunnelButton'),
+      refreshButton: document.getElementById('refreshButton'),
+      callCleanupId: document.getElementById('callCleanupId'),
+      liveRoomCleanupId: document.getElementById('liveRoomCleanupId'),
+      liveRoomLookupId: document.getElementById('liveRoomLookupId'),
+      cleanupCallButton: document.getElementById('cleanupCallButton'),
+      cleanupLiveRoomButton: document.getElementById('cleanupLiveRoomButton'),
+      cleanupInactiveButton: document.getElementById('cleanupInactiveButton'),
+      lookupLiveRoomButton: document.getElementById('lookupLiveRoomButton'),
+      cleanupStatus: document.getElementById('cleanupStatus'),
+      cleanupResult: document.getElementById('cleanupResult'),
+      liveRoomLookupStatus: document.getElementById('liveRoomLookupStatus'),
+      liveRoomLookupResult: document.getElementById('liveRoomLookupResult')
+    };
+    let refreshTimer = null;
+    async function refreshRuntime() {
+      try {
+        const response = await fetch('/api/admin/runtime', { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error(await response.text());
+        }
+        const payload = await response.json();
+        renderRuntime(payload);
+      } catch (error) {
+        elements.tunnelStatus.className = 'status danger';
+        elements.tunnelStatus.textContent = String(error.message || error);
+        elements.onlineUsersBody.innerHTML = '<tr><td colspan="3">本机管理接口不可用。请在 localhost 打开此页面。</td></tr>';
+        elements.callSessionList.innerHTML = '<li>本机管理接口不可用。</li>';
+        elements.liveRoomList.innerHTML = '<li>本机管理接口不可用。</li>';
+      }
+    }
+    async function startCloudflare() {
+      elements.startTunnelButton.disabled = true;
+      try {
+        const response = await fetch('/api/admin/cloudflare/start', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+        if (!response.ok) {
+          throw new Error(await response.text());
+        }
+        renderCloudflare(await response.json());
+      } catch (error) {
+        elements.tunnelStatus.className = 'status danger';
+        elements.tunnelStatus.textContent = String(error.message || error);
+      } finally {
+        elements.startTunnelButton.disabled = false;
+      }
+    }
+    async function cleanupCall() {
+      const callId = elements.callCleanupId.value.trim();
+      if (!callId) {
+        renderCleanupResult('danger', '请先输入 callId。');
+        return;
+      }
+
+      await runCleanup(`/api/admin/cleanup/calls/${encodeURIComponent(callId)}`, elements.cleanupCallButton, `已尝试清理通话 ${callId}`);
+    }
+    async function cleanupLiveRoom() {
+      const roomId = elements.liveRoomCleanupId.value.trim();
+      if (!roomId) {
+        renderCleanupResult('danger', '请先输入 roomId。');
+        return;
+      }
+
+      await runCleanup(`/api/admin/cleanup/live-rooms/${encodeURIComponent(roomId)}`, elements.cleanupLiveRoomButton, `已尝试清理直播房间 ${roomId}`);
+    }
+    async function cleanupInactive() {
+      await runCleanup('/api/admin/cleanup/inactive', elements.cleanupInactiveButton, '已执行一次按配置的批量扫尾');
+    }
+    async function lookupLiveRoom() {
+      const roomId = elements.liveRoomLookupId.value.trim();
+      if (!roomId) {
+        renderLiveRoomLookupResult('danger', '请先输入 RoomId。');
+        return;
+      }
+
+      elements.lookupLiveRoomButton.disabled = true;
+      renderLiveRoomLookupResult('', '查询中...');
+      try {
+        const response = await fetch(`/api/admin/live-rooms/${encodeURIComponent(roomId)}`, { cache: 'no-store' });
+        const text = await response.text();
+        if (!response.ok) {
+          throw new Error(text || `HTTP ${response.status}`);
+        }
+
+        const payload = text ? JSON.parse(text) : {};
+        renderLiveRoomLookupResult(payload.exists ? 'success' : 'warning', payload.message || '查询完成', payload);
+      } catch (error) {
+        renderLiveRoomLookupResult('danger', String(error.message || error));
+      } finally {
+        elements.lookupLiveRoomButton.disabled = false;
+      }
+    }
+    async function runCleanup(url, triggerButton, successMessage) {
+      triggerButton.disabled = true;
+      renderCleanupResult('', '处理中...');
+      try {
+        const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+        const text = await response.text();
+        if (!response.ok) {
+          throw new Error(text || `HTTP ${response.status}`);
+        }
+
+        const payload = text ? JSON.parse(text) : {};
+        renderCleanupResult('success', successMessage, payload);
+        await refreshRuntime();
+      } catch (error) {
+        renderCleanupResult('danger', String(error.message || error));
+      } finally {
+        triggerButton.disabled = false;
+      }
+    }
+    function renderRuntime(payload) {
+      elements.machine.textContent = payload.machine;
+      elements.nowUtc.textContent = new Date(payload.nowUtc).toLocaleString();
+      elements.urls.textContent = payload.urls;
+      elements.onlineUserCount.textContent = payload.online?.onlineUserCount ?? 0;
+      elements.activeDeviceCount.textContent = payload.online?.activeDeviceCount ?? 0;
+      elements.configState.textContent = payload.oauthConfigured && payload.jwtConfigured ? '就绪' : '缺少配置';
+      renderCloudflare(payload.cloudflare);
+      renderOnlineUsers(payload.online?.users || []);
+      renderCallSessions(payload.callSessions || []);
+      renderLiveRooms(payload.liveRooms || []);
+    }
+    function renderCloudflare(cloudflare) {
+      const level = cloudflare.isRunning ? 'success' : (!cloudflare.isInstalled || !cloudflare.configExists || !cloudflare.configMatches ? 'warning' : '');
+      elements.tunnelStatus.className = `status ${level}`.trim();
+      elements.tunnelStatus.textContent = cloudflare.message || '未知状态';
+      elements.tunnelHostname.textContent = cloudflare.hostname || '-';
+      elements.tunnelServiceUrl.textContent = cloudflare.serviceUrl || '-';
+      elements.startTunnelButton.disabled = !!cloudflare.isManagedByServer;
+      const logs = cloudflare.recentLogs || [];
+      elements.logList.innerHTML = logs.length
+        ? logs.slice().reverse().map(item => `<li>${escapeHtml(item)}</li>`).join('')
+        : '<li>暂无日志</li>';
+    }
+    function renderOnlineUsers(users) {
+      elements.onlineUsersBody.innerHTML = users.length
+        ? users.map(user => `<tr><td>${escapeHtml(user.userId)}</td><td>${user.deviceCount}</td><td>${new Date(user.lastSeenUtc).toLocaleString()}</td></tr>`).join('')
+        : '<tr><td colspan="3">当前无在线用户</td></tr>';
+    }
+    function renderCallSessions(callSessions) {
+      elements.callSessionList.innerHTML = callSessions.length
+        ? callSessions.map(item => `
+            <li>
+              <strong>${escapeHtml(item.callId)}</strong>
+              <div class="session-meta">最近活动: ${new Date(item.lastActivityAtUtc).toLocaleString()}</div>
+              <div class="session-meta">连接数: ${item.activeConnectionCount} | 待接邀请: ${item.hasPendingInvitation ? '是' : '否'} | 已接听: ${item.recipientJoined ? '是' : '否'}</div>
+            </li>`).join('')
+        : '<li>当前没有保留中的通话会话。</li>';
+    }
+    function renderLiveRooms(liveRooms) {
+      elements.liveRoomList.innerHTML = liveRooms.length
+        ? liveRooms.map(item => `
+            <li>
+              <strong>${escapeHtml(item.roomId)}</strong>
+              <div class="session-meta">房间名: ${escapeHtml(item.displayName || '-')}</div>
+              <div class="session-meta">最近活动: ${new Date(item.lastActivityAtUtc).toLocaleString()}</div>
+              <div class="session-meta">连接数: ${item.activeConnectionCount} | 观众数: ${item.viewerCount}</div>
+            </li>`).join('')
+        : '<li>当前没有保留中的直播房间。</li>';
+    }
+    function renderCleanupResult(level, statusText, payload) {
+      elements.cleanupStatus.className = `status ${level}`.trim();
+      elements.cleanupStatus.textContent = statusText;
+      elements.cleanupResult.textContent = payload ? JSON.stringify(payload, null, 2) : '暂无执行结果';
+    }
+    function renderLiveRoomLookupResult(level, statusText, payload) {
+      elements.liveRoomLookupStatus.className = `status ${level}`.trim();
+      elements.liveRoomLookupStatus.textContent = statusText;
+      elements.liveRoomLookupResult.textContent = payload ? JSON.stringify(payload, null, 2) : '暂无房间详情';
+    }
+    function escapeHtml(value) {
+      return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+    }
+    elements.startTunnelButton.addEventListener('click', startCloudflare);
+    elements.refreshButton.addEventListener('click', refreshRuntime);
+    elements.cleanupCallButton.addEventListener('click', cleanupCall);
+    elements.cleanupLiveRoomButton.addEventListener('click', cleanupLiveRoom);
+    elements.cleanupInactiveButton.addEventListener('click', cleanupInactive);
+    elements.lookupLiveRoomButton.addEventListener('click', lookupLiveRoom);
+    refreshRuntime();
+    refreshTimer = window.setInterval(refreshRuntime, 10000);
+    window.addEventListener('beforeunload', () => {
+      if (refreshTimer !== null) {
+        window.clearInterval(refreshTimer);
+      }
+    });
+  </script>
+</body>
+</html>

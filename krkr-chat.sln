@@ -9,6 +9,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecureChat.Shared", "src\Se
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecureChat.Client", "src\SecureChat.Client\SecureChat.Client.csproj", "{3592B75A-C759-47F7-84FE-E71D2F3BFF86}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecureChat.ClientCore", "src\SecureChat.ClientCore\SecureChat.ClientCore.csproj", "{0D48D33A-7EEA-420C-A964-4D848B9526A1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecureChat.Desktop", "src\SecureChat.Desktop\SecureChat.Desktop.csproj", "{44A4FC1E-D6A6-47F0-9A2A-E9D72BFC38D3}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecureChat.Server", "src\SecureChat.Server\SecureChat.Server.csproj", "{A31428EA-2F9B-4768-8E05-B6DA5781F750}"
 EndProject
 Global
@@ -29,6 +33,14 @@ Global
 		{3592B75A-C759-47F7-84FE-E71D2F3BFF86}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3592B75A-C759-47F7-84FE-E71D2F3BFF86}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3592B75A-C759-47F7-84FE-E71D2F3BFF86}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D48D33A-7EEA-420C-A964-4D848B9526A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D48D33A-7EEA-420C-A964-4D848B9526A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D48D33A-7EEA-420C-A964-4D848B9526A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D48D33A-7EEA-420C-A964-4D848B9526A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{44A4FC1E-D6A6-47F0-9A2A-E9D72BFC38D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44A4FC1E-D6A6-47F0-9A2A-E9D72BFC38D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44A4FC1E-D6A6-47F0-9A2A-E9D72BFC38D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44A4FC1E-D6A6-47F0-9A2A-E9D72BFC38D3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A31428EA-2F9B-4768-8E05-B6DA5781F750}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A31428EA-2F9B-4768-8E05-B6DA5781F750}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A31428EA-2F9B-4768-8E05-B6DA5781F750}.Release|Any CPU.ActiveCfg = Release|Any CPU

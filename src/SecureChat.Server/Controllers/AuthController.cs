@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using SecureChat.Server.Auth;
+using SecureChat.Server.Services.Online;
+using SecureChat.Shared.Constants;
 using SecureChat.Server.Services;
 using SecureChat.Shared.Contracts.Auth;
 
@@ -19,17 +21,26 @@ public sealed class AuthController : ControllerBase
     private readonly IOptions<MicrosoftOAuthOptions> _microsoftOptions;
     private readonly JwtTokenService _jwtTokenService;
     private readonly UserAccountService _userAccountService;
+    private readonly PublicKeyDirectoryService _publicKeyDirectoryService;
+    private readonly MessageService _messageService;
+    private readonly OnlinePresenceService _onlinePresenceService;
 
     public AuthController(
         IHttpClientFactory httpClientFactory,
         IOptions<MicrosoftOAuthOptions> microsoftOptions,
         JwtTokenService jwtTokenService,
-        UserAccountService userAccountService)
+        UserAccountService userAccountService,
+        PublicKeyDirectoryService publicKeyDirectoryService,
+        MessageService messageService,
+        OnlinePresenceService onlinePresenceService)
     {
         _httpClientFactory = httpClientFactory;
         _microsoftOptions = microsoftOptions;
         _jwtTokenService = jwtTokenService;
         _userAccountService = userAccountService;
+        _publicKeyDirectoryService = publicKeyDirectoryService;
+        _messageService = messageService;
+        _onlinePresenceService = onlinePresenceService;
     }
 
     [HttpGet("/api/auth/oauth/microsoft/start")]
@@ -97,7 +108,7 @@ public sealed class AuthController : ControllerBase
         }
 
         var user = _userAccountService.GetOrCreateMicrosoftUser(externalId, displayName, email);
-        var login = _jwtTokenService.CreateToken(user);
+        var login = _jwtTokenService.CreateToken(externalId, user);
 
         if (!string.IsNullOrWhiteSpace(state))
         {
@@ -114,21 +125,50 @@ public sealed class AuthController : ControllerBase
     }
 
     [Authorize]
-    [HttpGet("/api/auth/me")]
+    [HttpGet(ApiRoutes.Me)]
     public ActionResult<CurrentUserResponse> Me()
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub") ?? "";
-        var displayName = User.FindFirstValue(ClaimTypes.Name) ?? User.FindFirstValue("unique_name") ?? "";
-        var email = User.FindFirstValue(ClaimTypes.Email) ?? User.FindFirstValue("email") ?? "";
-        var provider = User.FindFirstValue("provider") ?? "microsoft";
-
-        return Ok(new CurrentUserResponse
+        var externalId = GetExternalId();
+        if (string.IsNullOrWhiteSpace(externalId))
         {
-            UserId = userId,
-            DisplayName = displayName,
-            Email = email,
-            AuthProvider = provider
-        });
+            return Unauthorized();
+        }
+
+        var currentUser = _userAccountService.GetByExternalId(externalId);
+        return currentUser is null ? Unauthorized() : Ok(currentUser);
+    }
+
+    [Authorize]
+    [HttpPut(ApiRoutes.UpdateMyUserId)]
+    public ActionResult<CurrentUserResponse> UpdateMyUserId([FromBody] UpdateUserIdRequest request)
+    {
+        var externalId = GetExternalId();
+        if (string.IsNullOrWhiteSpace(externalId))
+        {
+            return Unauthorized();
+        }
+
+        if (!_userAccountService.TryUpdateUserId(externalId, request.UserId, out var updatedUser, out var previousUserId, out var error))
+        {
+            return BadRequest(error);
+        }
+
+        if (!string.Equals(previousUserId, updatedUser.UserId, StringComparison.OrdinalIgnoreCase))
+        {
+            _publicKeyDirectoryService.RenameUserId(previousUserId, updatedUser.UserId);
+            _messageService.RenameUserId(previousUserId, updatedUser.UserId);
+            _onlinePresenceService.RenameUserId(previousUserId, updatedUser.UserId);
+        }
+
+        return Ok(updatedUser);
+    }
+
+    private string GetExternalId()
+    {
+        return User.FindFirstValue("external_id")
+               ?? User.FindFirstValue(ClaimTypes.NameIdentifier)
+               ?? User.FindFirstValue("sub")
+               ?? string.Empty;
     }
 
     private string BuildAbsoluteCallbackUri(string callbackPath)

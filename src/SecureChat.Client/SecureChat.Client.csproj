@@ -7,6 +7,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\SecureChat.ClientCore\SecureChat.ClientCore.csproj" />
     <ProjectReference Include="..\SecureChat.Core\SecureChat.Core.csproj" />
     <ProjectReference Include="..\SecureChat.Shared\SecureChat.Shared.csproj" />
   </ItemGroup>

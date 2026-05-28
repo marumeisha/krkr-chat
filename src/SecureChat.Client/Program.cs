@@ -1,6 +1,6 @@
 using System;
 using System.Windows.Forms;
-using SecureChat.Client.Services;
+using SecureChat.ClientCore.Services;
 
 namespace SecureChat.Client;
 

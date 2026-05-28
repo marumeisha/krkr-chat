@@ -1,0 +1,31 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="using:SecureChat.Desktop.Views"
+        x:Class="SecureChat.Desktop.MessageWindow"
+        Width="980"
+        Height="820"
+        MinWidth="860"
+        MinHeight="620"
+        Title="SecureChat | 文字消息"
+        FontFamily="{StaticResource AppFont}"
+        Background="{StaticResource WindowBackgroundBrush}">
+  <Grid RowDefinitions="Auto,*,Auto" Margin="24">
+    <Border Classes="card" Background="{StaticResource SurfaceBrush}" Padding="20">
+      <StackPanel Spacing="6">
+        <TextBlock Text="文字消息窗口" FontSize="30" FontWeight="Bold" />
+        <TextBlock Text="纯文本消息保持原有链路；带附件消息会把文本和附件元数据一起加密后发送。"
+                   Foreground="{StaticResource TextMutedBrush}"
+                   TextWrapping="Wrap" />
+      </StackPanel>
+    </Border>
+
+    <ScrollViewer Grid.Row="1" Margin="0,18,0,18" HorizontalScrollBarVisibility="Disabled">
+      <Grid RowDefinitions="Auto,*">
+        <views:MessageComposerView />
+        <views:MessageListView Grid.Row="1" Margin="0,18,0,0" />
+      </Grid>
+    </ScrollViewer>
+
+    <views:FooterStatusView Grid.Row="2" />
+  </Grid>
+</Window>

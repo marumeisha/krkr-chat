@@ -1,0 +1,26 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="using:SecureChat.Desktop.Views"
+        x:Class="SecureChat.Desktop.LiveWindow"
+        Width="1480"
+        Height="920"
+        MinWidth="1180"
+        MinHeight="760"
+        Title="SecureChat | 直播间"
+        FontFamily="{StaticResource AppFont}"
+        Background="{StaticResource WindowBackgroundBrush}">
+  <Grid RowDefinitions="Auto,*,Auto" Margin="24">
+    <Border Classes="card" Background="{StaticResource SurfaceBrush}" Padding="20">
+      <StackPanel Spacing="6">
+        <TextBlock Text="直播间窗口" FontSize="30" FontWeight="Bold" />
+        <TextBlock Text="主播放器、房间信息和公开直播目录已收拢到同一窗口，先完成单主播单观众 MVP，再继续向目录、弹幕和互动区扩展。"
+                   Foreground="{StaticResource TextMutedBrush}"
+                   TextWrapping="Wrap" />
+      </StackPanel>
+    </Border>
+
+    <views:LiveBroadcastPanelView Grid.Row="1" Margin="0,18,0,18" />
+
+    <views:FooterStatusView Grid.Row="2" />
+  </Grid>
+</Window>

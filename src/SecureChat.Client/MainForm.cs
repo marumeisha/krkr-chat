@@ -5,7 +5,7 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 using SecureChat.Client.Modules.OnlineUsers;
-using SecureChat.Client.Services;
+using SecureChat.ClientCore.Services;
 using SecureChat.Core.Crypto;
 using SecureChat.Core.Keys;
 using SecureChat.Core.Models;
@@ -15,7 +15,7 @@ namespace SecureChat.Client;
 
 public sealed class MainForm : Form
 {
-    private readonly TextBox _currentUserTextBox = new() { PlaceholderText = "Current User ID", Width = 180, Margin = new Padding(4) };
+    private readonly TextBox _customUserIdTextBox = new() { PlaceholderText = "My Custom User ID", Width = 180, Margin = new Padding(4) };
     private readonly TextBox _recipientUserTextBox = new() { PlaceholderText = "Recipient User ID", Width = 180, Margin = new Padding(4) };
     private readonly TextBox _messageTextBox = new() { Multiline = true, Width = 520, Height = 120, ScrollBars = ScrollBars.Vertical };
     private readonly Button _registerKeyButton = new()
@@ -50,6 +50,14 @@ public sealed class MainForm : Form
         Padding = new Padding(8, 4, 8, 4),
         Margin = new Padding(4)
     };
+    private readonly Button _saveUserIdButton = new()
+    {
+        Text = "Save My ID",
+        AutoSize = true,
+        AutoSizeMode = AutoSizeMode.GrowAndShrink,
+        Padding = new Padding(8, 4, 8, 4),
+        Margin = new Padding(4)
+    };
     private readonly ListBox _messagesListBox = new() { Width = 540, Height = 260 };
     private readonly Label _statusLabel = new() { AutoSize = true, Text = "Ready" };
     private readonly OnlineUsersPanel _onlineUsersPanel = new() { Width = 300, Height = 400 };
@@ -61,6 +69,7 @@ public sealed class MainForm : Form
     private readonly OnlineUsersService _onlineUsersService = new();
     private readonly System.Windows.Forms.Timer _presenceTimer = new() { Interval = 30_000 };
     private bool _splittersInitialized;
+    private string _currentUserId = string.Empty;
 
     public MainForm(Uri apiBaseUri)
     {
@@ -88,9 +97,10 @@ public sealed class MainForm : Form
             FlowDirection = FlowDirection.LeftToRight
         };
 
-        topPanel.Controls.Add(_currentUserTextBox);
+        topPanel.Controls.Add(_customUserIdTextBox);
         topPanel.Controls.Add(_recipientUserTextBox);
         topPanel.Controls.Add(_signInButton);
+        topPanel.Controls.Add(_saveUserIdButton);
         topPanel.Controls.Add(_registerKeyButton);
         topPanel.Controls.Add(_sendButton);
         topPanel.Controls.Add(_refreshButton);
@@ -135,10 +145,11 @@ public sealed class MainForm : Form
         Shown += (_, _) => EnsureInitialSplitters(mainSplit, chatSplit);
 
         _signInButton.Click += async (_, _) => await SignInWithMicrosoftAsync();
+        _saveUserIdButton.Click += async (_, _) => await SaveCustomUserIdAsync();
         _registerKeyButton.Click += async (_, _) => await RegisterMyPublicKeyAsync();
         _sendButton.Click += async (_, _) => await SendCurrentMessageAsync();
         _refreshButton.Click += async (_, _) => await RefreshInboxAsync();
-        _currentUserTextBox.TextChanged += (_, _) => RefreshOnlineUsersPanel();
+        _customUserIdTextBox.TextChanged += (_, _) => RefreshOnlineUsersPanel();
         _onlineUsersPanel.UserPicked += userId => _recipientUserTextBox.Text = userId;
         _presenceTimer.Tick += (_, _) => _ = SendPresenceHeartbeatAsync();
         _presenceTimer.Start();
@@ -230,8 +241,7 @@ public sealed class MainForm : Form
 
             if (query.TryGetValue("userId", out var userId) && !string.IsNullOrWhiteSpace(userId))
             {
-                _currentUserTextBox.Text = userId;
-                _onlineUsersService.RecordSeen(userId);
+                SetCurrentUserId(userId);
             }
 
             await WriteCallbackPageAsync(callbackContext.Response, "Sign in succeeded. You can close this page and return to SecureChat Client.");
@@ -241,8 +251,7 @@ public sealed class MainForm : Form
             {
                 if (!string.IsNullOrWhiteSpace(currentUser.UserId))
                 {
-                    _currentUserTextBox.Text = currentUser.UserId;
-                    _onlineUsersService.RecordSeen(currentUser.UserId);
+                    SetCurrentUserId(currentUser.UserId);
                 }
 
                 RefreshOnlineUsersPanel();
@@ -271,7 +280,7 @@ public sealed class MainForm : Form
     {
         try
         {
-            var userId = _currentUserTextBox.Text.Trim();
+            var userId = _currentUserId.Trim();
             if (string.IsNullOrWhiteSpace(userId))
             {
                 SetStatus("Please enter Current User ID.");
@@ -295,7 +304,7 @@ public sealed class MainForm : Form
     {
         try
         {
-            var senderUserId = _currentUserTextBox.Text.Trim();
+            var senderUserId = _currentUserId.Trim();
             var recipientUserId = _recipientUserTextBox.Text.Trim();
             var plaintext = _messageTextBox.Text;
 
@@ -361,7 +370,7 @@ public sealed class MainForm : Form
     {
         try
         {
-            var userId = _currentUserTextBox.Text.Trim();
+            var userId = _currentUserId.Trim();
             if (string.IsNullOrWhiteSpace(userId))
             {
                 SetStatus("Please enter Current User ID.");
@@ -396,6 +405,39 @@ public sealed class MainForm : Form
         }
     }
 
+    private async Task SaveCustomUserIdAsync()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(_currentUserId))
+            {
+                SetStatus("Please sign in before changing your user ID.");
+                return;
+            }
+
+            var requestedUserId = _customUserIdTextBox.Text.Trim();
+            if (string.IsNullOrWhiteSpace(requestedUserId))
+            {
+                SetStatus("Please enter a custom user ID.");
+                return;
+            }
+
+            var previousUserId = _currentUserId;
+            var updatedUser = await _apiClient.UpdateMyUserIdAsync(requestedUserId);
+            if (!string.Equals(previousUserId, updatedUser.UserId, StringComparison.OrdinalIgnoreCase))
+            {
+                _identityKeyService.RenameIdentity(previousUserId, updatedUser.UserId);
+            }
+
+            SetCurrentUserId(updatedUser.UserId);
+            SetStatus($"User ID updated to {updatedUser.UserId}.");
+        }
+        catch (Exception ex)
+        {
+            SetStatus($"Update user ID failed: {ex.Message}");
+        }
+    }
+
     private void SetStatus(string text)
     {
         _statusLabel.Text = text;
@@ -403,10 +445,18 @@ public sealed class MainForm : Form
 
     private void RefreshOnlineUsersPanel()
     {
-        var currentUserId = _currentUserTextBox.Text.Trim();
+        var currentUserId = _currentUserId.Trim();
         var entries = _onlineUsersService.GetEntries();
         _onlineUsersPanel.SetEntries(entries, currentUserId);
         _ = RefreshOnlineUsersFromServerAsync(currentUserId);
+    }
+
+    private void SetCurrentUserId(string userId)
+    {
+        _currentUserId = userId.Trim();
+        _customUserIdTextBox.Text = _currentUserId;
+        _onlineUsersService.RecordSeen(_currentUserId);
+        RefreshOnlineUsersPanel();
     }
 
     private static async Task WriteCallbackPageAsync(HttpListenerResponse response, string message)
@@ -466,7 +516,7 @@ public sealed class MainForm : Form
 
     private async Task SendPresenceHeartbeatAsync()
     {
-        var userId = _currentUserTextBox.Text.Trim();
+        var userId = _currentUserId.Trim();
         if (string.IsNullOrWhiteSpace(userId))
         {
             return;

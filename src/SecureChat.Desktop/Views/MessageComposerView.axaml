@@ -1,0 +1,39 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="SecureChat.Desktop.Views.MessageComposerView">
+  <Border Classes="card">
+    <StackPanel Spacing="12">
+      <TextBlock Classes="section-title" Text="加密消息" />
+      <TextBlock Text="文本消息默认走原有链路；选择附件后，文本和附件会共用相同的 RSA + AES-GCM 加密流程。"
+                 Foreground="{StaticResource TextMutedBrush}" />
+      <TextBox Text="{Binding MessageText}"
+               Watermark="输入消息或附件说明..."
+               AcceptsReturn="True"
+               TextWrapping="Wrap"
+               MinHeight="150" />
+      <Border Background="{StaticResource SurfaceBrush}" CornerRadius="14" Padding="12">
+        <Grid ColumnDefinitions="Auto,Auto,*">
+          <Button Content="选择附件" Click="AttachFile_Click" />
+          <Button Grid.Column="1"
+            Margin="10,0,0,0"
+                  Content="清除附件"
+                  Click="ClearAttachment_Click"
+                  IsVisible="{Binding HasPendingAttachment}" />
+          <TextBlock Grid.Column="2"
+               Margin="10,0,0,0"
+                     Text="{Binding PendingAttachmentSummary}"
+                     VerticalAlignment="Center"
+                     TextWrapping="Wrap"
+                     Foreground="{StaticResource TextMutedBrush}" />
+        </Grid>
+      </Border>
+      <Grid ColumnDefinitions="Auto,*">
+        <Button Content="加密并发送" Command="{Binding SendMessageCommand}" Margin="0,0,12,0" />
+        <TextBlock Grid.Column="1"
+                   Text="{Binding CurrentDisplayName}"
+                   VerticalAlignment="Center"
+                   Foreground="{StaticResource TextMutedBrush}" />
+      </Grid>
+    </StackPanel>
+  </Border>
+</UserControl>

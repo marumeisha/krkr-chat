@@ -7,4 +7,5 @@ public interface IKeyStore
     bool Exists(string keyId);
     void SavePublicKey(string keyId, string publicKeyPem);
     string LoadPublicKey(string keyId);
+    void Rename(string currentKeyId, string newKeyId);
 }

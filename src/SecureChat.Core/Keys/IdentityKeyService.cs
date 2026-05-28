@@ -51,6 +51,14 @@ public sealed class IdentityKeyService
         return _keyStore.LoadPublicKey(keyId);
     }
 
+    public void RenameIdentity(string currentKeyId, string newKeyId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(currentKeyId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(newKeyId);
+
+        _keyStore.Rename(currentKeyId, newKeyId);
+    }
+
     public RSA LoadPublicKeyFromPem(string pem)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(pem);

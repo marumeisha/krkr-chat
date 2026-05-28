@@ -1,8 +1,10 @@
 using System.Security.Cryptography;
+using System.Runtime.Versioning;
 using System.Text;
 
 namespace SecureChat.Core.Keys;
 
+[SupportedOSPlatform("windows")]
 public sealed class WindowsDpapiKeyStore : IKeyStore
 {
     private static readonly byte[] Entropy = Encoding.UTF8.GetBytes("SecureChat-WindowsDpapiKeyStore-v1");
@@ -53,6 +55,41 @@ public sealed class WindowsDpapiKeyStore : IKeyStore
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(keyId);
         return File.ReadAllText(GetPublicKeyPath(keyId), Encoding.UTF8);
+    }
+
+    public void Rename(string currentKeyId, string newKeyId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(currentKeyId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(newKeyId);
+
+        if (string.Equals(currentKeyId, newKeyId, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var currentPrivatePath = GetPrivateKeyPath(currentKeyId);
+        var currentPublicPath = GetPublicKeyPath(currentKeyId);
+        if (!File.Exists(currentPrivatePath) || !File.Exists(currentPublicPath))
+        {
+            return;
+        }
+
+        Directory.CreateDirectory(_baseDirectory);
+        var newPrivatePath = GetPrivateKeyPath(newKeyId);
+        var newPublicPath = GetPublicKeyPath(newKeyId);
+
+        if (File.Exists(newPrivatePath))
+        {
+            File.Delete(newPrivatePath);
+        }
+
+        if (File.Exists(newPublicPath))
+        {
+            File.Delete(newPublicPath);
+        }
+
+        File.Move(currentPrivatePath, newPrivatePath);
+        File.Move(currentPublicPath, newPublicPath);
     }
 
     private string GetPrivateKeyPath(string keyId) => Path.Combine(_baseDirectory, $"{SanitizeKeyId(keyId)}.private.pkcs8.dpapi");

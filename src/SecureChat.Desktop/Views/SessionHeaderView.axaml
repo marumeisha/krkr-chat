@@ -1,0 +1,36 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="SecureChat.Desktop.Views.SessionHeaderView">
+  <Border Classes="card" Padding="22" Background="{StaticResource SurfaceBrush}">
+    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+      <StackPanel Spacing="6">
+        <TextBlock Text="SecureChat Desktop" FontSize="34" FontWeight="Bold" />
+        <TextBlock Text="Avalonia 客户端骨架已就位，消息、在线状态和后续视频通话入口共用同一套客户端服务层。"
+                   Foreground="{StaticResource TextMutedBrush}"
+                   TextWrapping="Wrap" />
+      </StackPanel>
+      <Border Grid.Column="1"
+              Background="{StaticResource StatusPillBrush}"
+              CornerRadius="999"
+              Padding="14,8"
+              VerticalAlignment="Top">
+        <TextBlock Text="{Binding StatusText}" MaxWidth="320" TextWrapping="Wrap" />
+      </Border>
+
+      <Grid Grid.Row="1" Grid.ColumnSpan="2" RowDefinitions="Auto,Auto" Margin="0,22,0,0">
+        <Grid ColumnDefinitions="*,*">
+          <TextBox Grid.Column="0" Watermark="My Custom User ID" Text="{Binding PendingUserId}" Margin="0,0,12,0" />
+          <TextBox Grid.Column="1" Watermark="Recipient User ID" Text="{Binding RecipientUserId}" />
+        </Grid>
+
+        <WrapPanel Grid.Row="1" Margin="0,12,0,0" Orientation="Horizontal" ItemWidth="124" ItemHeight="36">
+          <Button Content="Microsoft 登录" Command="{Binding SignInCommand}" />
+          <Button Content="保存 ID" Command="{Binding UpdateUserIdCommand}" />
+          <Button Content="注册公钥" Command="{Binding RegisterPublicKeyCommand}" />
+          <Button Content="刷新收件箱" Command="{Binding RefreshInboxCommand}" />
+          <Button Content="刷新在线状态" Command="{Binding RefreshOnlineUsersCommand}" />
+        </WrapPanel>
+      </Grid>
+    </Grid>
+  </Border>
+</UserControl>
